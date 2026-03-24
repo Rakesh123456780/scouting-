@@ -1,0 +1,27 @@
+# Environment Variables (CRITICAL: Do not upload secrets!)
+.env
+
+# Python (Virtual Environments)
+.venv/
+env/
+venv/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Workspace / IDE Settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project Specific
+scoutiq.db
+rakesh/
+/migrations/__pycache__/
+
+# OS files
+.DS_Store
+Thumbs.db

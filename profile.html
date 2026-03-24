@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScoutIQ — My Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #09090b 0%, #17171f 100%);
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            opacity: 0.5;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+        .shape-1 {
+            top: -10%; left: -10%;
+            width: 500px; height: 500px;
+            background: #8b5cf6;
+        }
+        .shape-2 {
+            bottom: -10%; right: -10%;
+            width: 600px; height: 600px;
+            background: #3b82f6;
+            animation-delay: -5s;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 500px;
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slide-up {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .header a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .header a:hover {
+            color: var(--text-main);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .form-input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            margin-top: 1rem;
+        }
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .btn-reset:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .msg {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .msg.success { color: var(--success); }
+        .msg.error { color: var(--danger); }
+        .msg.show { opacity: 1; }
+
+        .metadata {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 99px;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .loader {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading .btn-text { display: none; }
+        .loading .loader { display: block; }
+    </style>
+</head>
+<body>
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1>My Profile</h1>
+            <a href="/dashboard">Back to App</a>
+        </div>
+
+        <form id="profileForm">
+            <div class="form-group">
+                <label>Email Address <span class="badge" id="verificationBadge">Verified</span></label>
+                <input type="email" id="email" class="form-input" disabled />
+            </div>
+
+            <div class="form-group">
+                <label>Mobile Number (Optional)</label>
+                <input type="tel" id="mobile" class="form-input" placeholder="+1 (555) 000-0000" />
+            </div>
+
+            <div id="msgBox" class="msg"></div>
+
+            <button type="submit" class="btn btn-primary" id="saveBtn">
+                <span class="btn-text">Save Changes</span>
+                <div class="loader"></div>
+            </button>
+            
+            <a href="/forgot-password" class="btn btn-reset">Change Password</a>
+
+            <button type="button" class="btn btn-danger" id="logoutBtn">Logout</button>
+        </form>
+
+        <div class="metadata">
+            <span>Account ID: <span id="accountId">--</span></span>
+            <span>Joined: <span id="joinDate">--</span></span>
+        </div>
+    </div>
+
+    <script>
+        // Fetch Profile Data on Load
+        async function loadProfile() {
+            try {
+                const res = await fetch('/api/profile');
+                if (!res.ok) {
+                    window.location.href = '/';
+                    return;
+                }
+                const data = await res.json();
+                
+                document.getElementById('email').value = data.email;
+                document.getElementById('mobile').value = data.phone_number || '';
+                document.getElementById('accountId').textContent = '#' + data.id;
+                
+                const date = new Date(data.created_at + "Z");
+                document.getElementById('joinDate').textContent = date.toLocaleDateString();
+
+                if (!data.is_verified) {
+                    const badge = document.getElementById('verificationBadge');
+                    badge.textContent = 'Unverified';
+                    badge.style.background = 'rgba(239, 68, 68, 0.2)';
+                    badge.style.color = 'var(--danger)';
+                }
+            } catch (e) {
+                console.error("Error fetching profile", e);
+            }
+        }
+
+        loadProfile();
+
+        // Handle Save
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            const mobile = document.getElementById('mobile').value;
+            const msgBox = document.getElementById('msgBox');
+
+            btn.classList.add('loading');
+            msgBox.className = 'msg';
+
+            try {
+                const res = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone_number: mobile })
+                });
+
+                if (res.ok) {
+                    msgBox.textContent = 'Profile updated successfully!';
+                    msgBox.classList.add('success', 'show');
+                } else {
+                    msgBox.textContent = 'Failed to update profile.';
+                    msgBox.classList.add('error', 'show');
+                }
+            } catch (e) {
+                msgBox.textContent = 'Network error.';
+                msgBox.classList.add('error', 'show');
+            } finally {
+                btn.classList.remove('loading');
+            }
+        });
+
+        // Handle Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (e) {
+                console.error("Logout failed", e);
+            }
+        });
+    </script>
+</body>
+</html>

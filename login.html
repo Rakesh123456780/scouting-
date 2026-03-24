@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — ScoutIQ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #09090b 0%, #17171f 100%);
+      --accent: #8b5cf6;
+      --accent-hover: #7c3aed;
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --error-color: #ef4444;
+      --success-color: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bg-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: 0;
+      opacity: 0.5;
+      animation: float 20s infinite ease-in-out alternate;
+    }
+    .shape-1 {
+      top: -10%; left: -10%;
+      width: 500px; height: 500px;
+      background: #8b5cf6;
+    }
+    .shape-2 {
+      bottom: -10%; right: -10%;
+      width: 600px; height: 600px;
+      background: #3b82f6;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 50px) scale(1.1); }
+    }
+
+    .login-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 420px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 3rem 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slide-up {
+      0% { opacity: 0; transform: translateY(40px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.4);
+    }
+    
+    .logo-icon svg {
+      color: white;
+      width: 28px;
+    }
+
+    .logo-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .logo-subtext {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 400;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 1rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-login:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -10px rgba(139, 92, 246, 0.6);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .link-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .link-row a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .link-row a:hover {
+      color: white;
+    }
+
+    .loader {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-top: -10px;
+      margin-left: -10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .btn-text {
+      transition: opacity 0.2s;
+    }
+
+    .loading .btn-text {
+      opacity: 0;
+    }
+    .loading .loader {
+      display: block;
+    }
+
+    .msg {
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .msg.error {
+      color: var(--error-color);
+    }
+    .msg.success {
+      color: var(--success-color);
+    }
+    .msg.show {
+      opacity: 1;
+    }
+
+    #otpSection {
+      display: none;
+      animation: slide-up 0.4s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+
+  <div class="login-container">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h1 class="logo-text">ScoutIQ</h1>
+      <p class="logo-subtext" id="headerSubtext">Sign in to your dashboard</p>
+    </div>
+
+    <form id="loginForm">
+      
+      <!-- Login Step -->
+      <div id="loginSection">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" class="form-input" placeholder="name@company.com" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="••••••••" required />
+        </div>
+      </div>
+
+      <!-- Verification Step (Shown if unverified) -->
+      <div id="otpSection">
+        <div class="form-group">
+          <label for="otpCode">Verification Code</label>
+          <input type="text" id="otpCode" class="form-input" placeholder="Check your email for 6-digit code" autocomplete="off" />
+        </div>
+      </div>
+      
+      <div id="errorMsg" class="msg error"></div>
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        <span class="btn-text" id="btnText">Sign In</span>
+        <div class="loader"></div>
+      </button>
+
+      <div class="link-row" id="footerLinks">
+        <a href="/forgot-password">Forgot password?</a>
+        <a href="/register">Create account</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    let currentStep = 'login';
+    let savedEmail = '';
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const btn = document.getElementById('loginBtn');
+      const emailObj = document.getElementById('email');
+      const passwordObj = document.getElementById('password');
+      const otpObj = document.getElementById('otpCode');
+      const errorMsg = document.getElementById('errorMsg');
+      
+      const email = emailObj.value;
+      const password = passwordObj.value;
+      
+      errorMsg.classList.remove('show', 'success');
+      btn.classList.add('loading');
+      
+      try {
+        if (currentStep === 'login') {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 600);
+            } else if (data.unverified) {
+                // If they need to verify, resend OTP via register logic transparently
+                const resendResp = await fetch('/api/register', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify({ email, password })
+                });
+
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('footerLinks').style.display = 'none';
+                document.getElementById('otpSection').style.display = 'block';
+                document.getElementById('headerSubtext').textContent = 'We just sent a 6-digit code to ' + email;
+                document.getElementById('btnText').textContent = 'Verify & Sign In';
+                
+                currentStep = 'verify';
+                savedEmail = email;
+                
+                errorMsg.className = 'msg success show';
+                errorMsg.textContent = "Verification code sent! Check your email.";
+                btn.classList.remove('loading');
+            } else {
+                errorMsg.className = 'msg error show';
+                errorMsg.textContent = data.error || 'Login failed';
+                btn.classList.remove('loading');
+            }
+        } else if (currentStep === 'verify') {
+            const otpCode = otpObj.value;
+            
+            const response = await fetch('/api/verify-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: savedEmail, otpCode })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                errorMsg.className = 'msg success show';
+                errorMsg.textContent = 'Account verified! Logging you in...';
+                
+                // Natively log them in now
+                const loginResp = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email: savedEmail, password })
+                });
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
+            } else {
+                errorMsg.className = 'msg error show';
+                errorMsg.textContent = data.error || 'Invalid OTP';
+                btn.classList.remove('loading');
+            }
+        }
+      } catch (err) {
+        errorMsg.className = 'msg error show';
+        errorMsg.textContent = 'Network error. Please try again.';
+        btn.classList.remove('loading');
+      }
+    });
+  </script>
+</body>
+</html>
