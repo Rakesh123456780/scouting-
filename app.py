@@ -40,11 +40,9 @@ def send_otp_email(recipient_email, otp_code, is_reset=False):
         body = f"Hello,\n\nHere is your 6-digit confirmation code to {action_text}:\n\n{otp_code}\n\nThanks,\nThe ScoutIQ Team"
         msg.attach(MIMEText(body, 'plain'))
 
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
         server.login(SENDER_EMAIL, SENDER_PASSWORD.replace(" ", ""))
-        text = msg.as_string()
-        server.sendmail(SENDER_EMAIL, recipient_email, text)
+        server.sendmail(SENDER_EMAIL, recipient_email, msg.as_string())
         server.quit()
         return True
     except Exception as e:
