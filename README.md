@@ -50,4 +50,4 @@ A high-performance, premium e-commerce product scouting and intelligence dashboa
 - Passwords are salted and hashed using PBKDF2.
 
 ---
-*Created with care by [USER Name]*
+*Created with care by [Rakesh Doddigarla]*
