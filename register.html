@@ -284,6 +284,9 @@
           <label for="otpCode">Verification Code</label>
           <input type="text" id="otpCode" class="form-input" placeholder="Check your email for 6-digit code" autocomplete="off" />
         </div>
+        <div style="text-align: right; margin-top: -0.5rem; margin-bottom: 1.5rem;">
+          <a href="#" id="resendBtn" style="color: var(--accent); font-size: 0.85rem; text-decoration: none; font-weight: 500;">Resend Code</a>
+        </div>
       </div>
       
       <div id="messageBox" class="msg"></div>
@@ -383,6 +386,40 @@
         msgBox.textContent = 'Network error. Please try again.';
       } finally {
         btn.classList.remove('loading');
+      }
+    });
+
+    // Resend Code Logic
+    document.getElementById('resendBtn').addEventListener('click', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const msgBox = document.getElementById('messageBox');
+      
+      this.style.opacity = '0.5';
+      this.style.pointerEvents = 'none';
+      this.textContent = 'Sending...';
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ email, password })
+        });
+        
+        if (response.ok) {
+          msgBox.className = 'msg success show';
+          msgBox.textContent = 'A new code has been sent!';
+        }
+      } catch (err) {
+        msgBox.className = 'msg error show';
+        msgBox.textContent = 'Failed to resend. Please try again.';
+      } finally {
+        setTimeout(() => {
+          this.style.opacity = '1';
+          this.style.pointerEvents = 'auto';
+          this.textContent = 'Resend Code';
+        }, 5000);
       }
     });
   </script>
