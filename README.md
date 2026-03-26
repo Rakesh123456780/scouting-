@@ -1,4 +1,4 @@
-# ScoutIQ (Anti) — E-Commerce Intelligence Dashboard
+# ScoutIQ — E-Commerce Intelligence Dashboard
 
 A high-performance, premium e-commerce product scouting and intelligence dashboard built with Flask and Vanilla JavaScript.
 
