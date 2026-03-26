@@ -17,24 +17,44 @@ A high-performance, premium e-commerce product scouting and intelligence dashboa
 
 ## 📦 Getting Started
 
-1. **Install Dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 1. Prerequisites
+Ensure you have **Python 3.10+** installed on your system.
 
-2. **Setup Environment**:
-   Create a `.env` file in the root with the following:
-   ```env
-   FLASK_SECRET_KEY=your_secret_key
-   SENDER_EMAIL=your_gmail@gmail.com
-   SENDER_PASSWORD=your_app_password
-   ```
+### 2. Clone the Repository
+```bash
+git clone https://github.com/Rakesh123456780/scouting-.git
+cd scouting-
+```
 
-3. **Run the Application**:
-   ```bash
-   python app.py
-   ```
-   The app will be available at `http://127.0.0.1:5000`.
+### 3. Create a Virtual Environment (Recommended)
+```bash
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On macOS/Linux:
+source .venv/bin/activate
+```
+
+### 4. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Setup Environment
+Create a `.env` file in the root directory. You can copy the template below:
+```env
+FLASK_SECRET_KEY=any_random_string_here
+SENDER_EMAIL=your_gmail@gmail.com
+SENDER_PASSWORD=your_app_password
+```
+> [!NOTE]
+> If you don't configure `SENDER_EMAIL`, the app will still work! It will simply print the **OTP verification codes to your terminal** so you can log in/register during local testing.
+
+### 6. Run the Application
+```bash
+python app.py
+```
+The app will automatically open in your browser at `http://127.0.0.1:5000`.
 
 ## 📂 Project Structure
 - `app.py`: Main Flask API and route handlers.
