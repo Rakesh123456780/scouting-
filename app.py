@@ -47,7 +47,6 @@ def send_otp_email(recipient_email, otp_code, is_reset=False):
         return True
     except Exception as e:
         print(f"[ERROR] Failed to send email: {e}")
-        print(f"[BACKUP] Your verification code is: {otp_code}")
         return False
 
 # ── Bootstrap ────────────────────────────────────────────────────
