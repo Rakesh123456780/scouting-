@@ -216,8 +216,8 @@ def register():
     if not email or not password:
         return jsonify({"error": "Email and password required"}), 400
         
-    import random
-    otp_code = str(random.randint(100000, 999999))
+    # TEMPORARY FIXED OTP FOR RENDER BYPASS
+    otp_code = "123456"
         
     conn = get_connection()
     try:
