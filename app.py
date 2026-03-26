@@ -225,15 +225,17 @@ def register():
         hashed = generate_password_hash(password)
         conn.execute("INSERT INTO users (email, password, otp_code, is_verified) VALUES (?, ?, ?, 0)", (email, hashed, otp_code))
         conn.commit()
-        # Send Real Email
-        send_otp_email(email, otp_code)
+        # Send Real Email (InBackground Thread to prevent timeout)
+        import threading
+        threading.Thread(target=send_otp_email, args=(email, otp_code)).start()
     except sqlite3.IntegrityError:
         existing_user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         if existing_user and existing_user["is_verified"] == 0:
             conn.execute("UPDATE users SET otp_code = ?, password = ? WHERE email = ?", (otp_code, hashed, email))
             conn.commit()
-            # Send Real Email (Resend OTP)
-            send_otp_email(email, otp_code)
+            # Send Real Email (InBackground Thread)
+            import threading
+            threading.Thread(target=send_otp_email, args=(email, otp_code)).start()
             conn.close()
             return jsonify({"message": "Check your email for the new OTP.", "requires_otp": True}), 201
             
@@ -338,8 +340,9 @@ def forgot_password_request_otp():
         conn.execute("UPDATE users SET otp_code = ? WHERE email = ?", (otp_code, email))
         conn.commit()
         
-        # Send Real Email for Password Reset
-        send_otp_email(email, otp_code, is_reset=True)
+        # Send Real Email for Password Reset (InBackground Thread)
+        import threading
+        threading.Thread(target=send_otp_email, args=(email, otp_code, True)).start()
         
     conn.close()
     # Always return success to prevent email enumeration
