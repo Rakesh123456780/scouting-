@@ -216,8 +216,11 @@ def register():
     if not email or not password:
         return jsonify({"error": "Email and password required"}), 400
         
-    # TEMPORARY FIXED OTP FOR RENDER BYPASS
-    otp_code = "123456"
+    if SENDER_EMAIL == "your-email@gmail.com":
+        otp_code = "123456" # Fallback for Render bypass without env vars
+    else:
+        import random
+        otp_code = str(random.randint(100000, 999999))
         
     conn = get_connection()
     try:
@@ -334,8 +337,12 @@ def forgot_password_request_otp():
     user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
     
     if user:
-        import random
-        otp_code = str(random.randint(100000, 999999))
+        if SENDER_EMAIL == "your-email@gmail.com":
+            otp_code = "123456"
+        else:
+            import random
+            otp_code = str(random.randint(100000, 999999))
+            
         conn.execute("UPDATE users SET otp_code = ? WHERE email = ?", (otp_code, email))
         conn.commit()
         
