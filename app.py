@@ -2,81 +2,24 @@
 ScoutIQ — Flask REST API  (app.py)
 Serves all product / watchlist / alert data from SQLite.
 """
-from functools import wraps
-from flask import Flask, request, jsonify, send_from_directory, session
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json, os
 import sqlite3
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from database import get_connection, init_db
 
 # Load environment variables
 load_dotenv()
 
-# ── Configuration ────────────────────────────────────────────────
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "your-email@gmail.com")
-SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "your-app-password")
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "scoutiq_default_secret_key")
-
-def send_otp_email(recipient_email, otp_code, is_reset=False):
-    if SENDER_EMAIL == "your-email@gmail.com":
-        print(f"\n[WARNING] SENDER_EMAIL not configured in app.py!")
-        print(f"To see this OTP actually sent, set up your Gmail and App Password.")
-        print(f"Fallback terminal print -> MOCK OTP for {recipient_email}: {otp_code}\n")
-        return False
-        
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = f"ScoutIQ <{SENDER_EMAIL}>"
-        msg['To'] = recipient_email
-        msg['Subject'] = "ScoutIQ - Password Reset Code" if is_reset else "ScoutIQ - Verify Your Account"
-
-        action_text = "reset your password" if is_reset else "verify your account"
-        
-        body = f"Hello,\n\nHere is your 6-digit confirmation code to {action_text}:\n\n{otp_code}\n\nThanks,\nThe ScoutIQ Team"
-        msg.attach(MIMEText(body, 'plain'))
-
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        server.login(SENDER_EMAIL, SENDER_PASSWORD.replace(" ", ""))
-        server.sendmail(SENDER_EMAIL, recipient_email, msg.as_string())
-        server.quit()
-        return True
-    except Exception as e:
-        print(f"[ERROR] Failed to send email: {e}")
-        print(f"[BACKUP] Your verification code is: {otp_code}")
-        return False
-
 # ── Bootstrap ────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
 CORS(app)
-app.secret_key = FLASK_SECRET_KEY  # Securely sourced from .env
 
 # Initialise DB on first run
 init_db()
 
-# ── Activity Logger Helper ───────────────────────────────────────
-def log_activity(email, action, details=""):
-    try:
-        conn = get_connection()
-        conn.execute("INSERT INTO activity_logs (user_email, action, details) VALUES (?, ?, ?)", (email, action, details))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print("Activity Log Error:", e)
-
-# ── Middleware ───────────────────────────────────────────────────
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if "user_email" not in session:
-            return jsonify({"error": "Login required"}), 401
-        return f(*args, **kwargs)
-    return decorated_function
 
 def row_to_dict(row):
     """Convert a sqlite3.Row to a plain dict and parse JSON columns."""
@@ -103,35 +46,13 @@ def row_to_dict(row):
 # ── Static file serving ─────────────────────────────────────────
 @app.route("/")
 def index():
-    if "user_email" in session:
-        return send_from_directory(BASE_DIR, "index.html")
-    return send_from_directory(BASE_DIR, "login.html")
-
+    return send_from_directory(BASE_DIR, "index.html")
 
 @app.route("/dashboard")
 def dashboard():
-    if "user_email" not in session:
-        return send_from_directory(BASE_DIR, "login.html")
     return send_from_directory(BASE_DIR, "index.html")
 
-@app.route("/profile")
-def profile_page():
-    if "user_email" not in session:
-        return send_from_directory(BASE_DIR, "login.html")
-    return send_from_directory(BASE_DIR, "profile.html")
 
-@app.route("/register")
-def register_page():
-    return send_from_directory(BASE_DIR, "register.html")
-
-@app.route("/forgot-password")
-def forgot_password_page():
-    return send_from_directory(BASE_DIR, "forgot_password.html")
-
-@app.route("/admin")
-def admin_page():
-    # Only serve to logged in (or just serve statically for demo purposes)
-    return send_from_directory(BASE_DIR, "admin.html")
 
 @app.route("/<path:filename>")
 def static_files(filename):
@@ -142,23 +63,7 @@ def static_files(filename):
 #  API  ROUTES
 # ══════════════════════════════════════════════════════════════════
 
-# ── Admin Activity API ───────────────────────────────────────────
-@app.route("/api/admin/users", methods=["GET"])
-@login_required
-def get_all_users():
-    # In a real app, you would also check for an is_admin flag
-    conn = get_connection()
-    users = conn.execute("SELECT id, email, is_verified, created_at FROM users ORDER BY created_at DESC").fetchall()
-    conn.close()
-    return jsonify([dict(u) for u in users])
 
-@app.route("/api/admin/activities", methods=["GET"])
-@login_required
-def get_activities():
-    conn = get_connection()
-    logs = conn.execute("SELECT * FROM activity_logs ORDER BY timestamp DESC LIMIT 100").fetchall()
-    conn.close()
-    return jsonify([dict(l) for l in logs])
 
 # ── Products ─────────────────────────────────────────────────────
 @app.route("/api/products", methods=["GET"])
@@ -206,176 +111,7 @@ def get_products():
     return jsonify(products)
 
 
-# ── Auth ─────────────────────────────────────────────────────────
-@app.route("/api/register", methods=["POST"])
-def register():
-    data = request.json
-    email = data.get("email")
-    password = data.get("password")
-    
-    if not email or not password:
-        return jsonify({"error": "Email and password required"}), 400
-        
-    if SENDER_EMAIL == "your-email@gmail.com":
-        otp_code = "123456" # Fallback for Render bypass without env vars
-    else:
-        import random
-        otp_code = str(random.randint(100000, 999999))
-        
-    conn = get_connection()
-    try:
-        hashed = generate_password_hash(password)
-        conn.execute("INSERT INTO users (email, password, otp_code, is_verified) VALUES (?, ?, ?, 0)", (email, hashed, otp_code))
-        conn.commit()
-        # Send Real Email (InBackground Thread to prevent timeout)
-        import threading
-        threading.Thread(target=send_otp_email, args=(email, otp_code)).start()
-    except sqlite3.IntegrityError:
-        existing_user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-        if existing_user and existing_user["is_verified"] == 0:
-            conn.execute("UPDATE users SET otp_code = ?, password = ? WHERE email = ?", (otp_code, hashed, email))
-            conn.commit()
-            # Send Real Email (InBackground Thread)
-            import threading
-            threading.Thread(target=send_otp_email, args=(email, otp_code)).start()
-            conn.close()
-            return jsonify({"message": "Check your email for the new OTP.", "requires_otp": True}), 201
-            
-        conn.close()
-        return jsonify({"error": "User already exists"}), 409
-    
-    conn.close()
-    return jsonify({"message": "Registration successful. Please check your email for OTP.", "requires_otp": True}), 201
 
-@app.route("/api/verify-otp", methods=["POST"])
-def verify_otp():
-    data = request.json
-    email = data.get("email")
-    otp_code = data.get("otpCode")
-    
-    conn = get_connection()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    
-    if user and user["otp_code"] == otp_code:
-        # Mark verified right away for simplicity here
-        conn.execute("UPDATE users SET is_verified = 1, otp_code = NULL WHERE email = ?", (email,))
-        conn.commit()
-        conn.close()
-        # Auto login the session for convenience
-        session["user_email"] = email
-        log_activity(email, "Verified Email")
-        return jsonify({"message": "OTP verified successfully"}), 200
-        
-    conn.close()
-    return jsonify({"error": "Invalid or expired OTP"}), 400
-
-@app.route("/api/login", methods=["POST"])
-def login_api():
-    data = request.json
-    email = data.get("email")
-    password = data.get("password")
-    
-    conn = get_connection()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    conn.close()
-    
-    if user and check_password_hash(user["password"], password):
-        if user["is_verified"] == 0:
-            return jsonify({"error": "Please verify your email using the OTP sent to you.", "unverified": True}), 403
-            
-        session["user_email"] = email
-        log_activity(email, "Logged In")
-        return jsonify({"message": "Login successful"}), 200
-    
-    return jsonify({"error": "Invalid email or password"}), 401
-
-@app.route("/api/logout", methods=["POST"])
-def logout():
-    email = session.pop("user_email", None)
-    if email:
-        log_activity(email, "Logged Out")
-    return jsonify({"message": "Logged out successfully"}), 200
-
-@app.route("/api/profile", methods=["GET"])
-def get_profile():
-    if "user_email" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    conn = get_connection()
-    user = conn.execute("SELECT id, email, phone_number, is_verified, created_at FROM users WHERE email = ?", (session["user_email"],)).fetchone()
-    conn.close()
-    
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-        
-    return jsonify(dict(user)), 200
-
-@app.route("/api/profile", methods=["PUT"])
-def update_profile():
-    if "user_email" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    data = request.json
-    phone_number = data.get("phone_number")
-    
-    conn = get_connection()
-    conn.execute("UPDATE users SET phone_number = ? WHERE email = ?", (phone_number, session["user_email"]))
-    conn.commit()
-    conn.close()
-    
-    log_activity(session["user_email"], "Updated Profile")
-    return jsonify({"message": "Profile updated successfully"}), 200
-
-@app.route("/api/forgot-password/request-otp", methods=["POST"])
-def forgot_password_request_otp():
-    data = request.json
-    email = data.get("email")
-    if not email:
-        return jsonify({"error": "Email required"}), 400
-        
-    conn = get_connection()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    
-    if user:
-        if SENDER_EMAIL == "your-email@gmail.com":
-            otp_code = "123456"
-        else:
-            import random
-            otp_code = str(random.randint(100000, 999999))
-            
-        conn.execute("UPDATE users SET otp_code = ? WHERE email = ?", (otp_code, email))
-        conn.commit()
-        
-        # Send Real Email for Password Reset (InBackground Thread)
-        import threading
-        threading.Thread(target=send_otp_email, args=(email, otp_code, True)).start()
-        
-    conn.close()
-    # Always return success to prevent email enumeration
-    return jsonify({"message": "If the email exists, an OTP has been sent."}), 200
-
-@app.route("/api/forgot-password/reset", methods=["POST"])
-def forgot_password_reset():
-    data = request.json
-    email = data.get("email")
-    otp_code = data.get("otpCode")
-    new_password = data.get("newPassword")
-    
-    if not email or not otp_code or not new_password:
-        return jsonify({"error": "Missing required fields"}), 400
-        
-    conn = get_connection()
-    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    
-    if user and user["otp_code"] == otp_code:
-        hashed = generate_password_hash(new_password)
-        conn.execute("UPDATE users SET password = ?, otp_code = NULL WHERE email = ?", (hashed, email))
-        conn.commit()
-        conn.close()
-        return jsonify({"message": "Password reset successfully"}), 200
-        
-    conn.close()
-    return jsonify({"error": "Invalid or expired OTP"}), 400
 
 
 @app.route("/api/products/<int:product_id>", methods=["GET"])
