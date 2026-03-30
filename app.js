@@ -51,16 +51,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   showToast('Loading data from server…', 'info', '⏳');
 
   try {
-    // Fetch all data from the API in parallel
-    const [products, watchlistIds, alerts, categories, geo, brands, insights] = await Promise.all([
-      apiGet('/api/products'),
-      apiGet('/api/watchlist'),
-      apiGet('/api/alerts'),
-      apiGet('/api/categories'),
-      apiGet('/api/geo'),
-      apiGet('/api/brands'),
-      apiGet('/api/insights'),
-    ]);
+    // Fetch data sequentially to prevent CPU/memory spikes on Render Free Tier 
+    // which cause intermittent 502 errors when hitting 7 endpoints simultaneously.
+    const products = await apiGet('/api/products');
+    const watchlistIds = await apiGet('/api/watchlist');
+    const alerts = await apiGet('/api/alerts');
+    const categories = await apiGet('/api/categories');
+    const geo = await apiGet('/api/geo');
+    const brands = await apiGet('/api/brands');
+    const insights = await apiGet('/api/insights');
 
     allProducts = products;
     filteredProducts = [...allProducts];
