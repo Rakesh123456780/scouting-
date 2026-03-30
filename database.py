@@ -308,9 +308,9 @@ def seed_data(conn):
             noun_pair = random.choice(nouns[category])
             name = f"{random.choice(adjectives)} {noun_pair[0]}"
             emoji = noun_pair[1]
-            price = round(float(random.uniform(9.99, 149.99)), 2)
-            original_price = round(float(price * random.uniform(1.1, 1.8)), 2)
-            rating = round(float(random.uniform(3.5, 5.0)), 1)
+            price = float(round(float(random.uniform(9.99, 149.99)), 2))
+            original_price = float(round(float(price * random.uniform(1.1, 1.8)), 2))
+            rating = float(round(float(random.uniform(3.5, 5.0)), 1))
             reviews = random.randint(50, 20000)
             score = random.randint(30, 99)
             product_tags = random.choice(tags)

@@ -53,16 +53,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     // Fetch data sequentially to prevent CPU/memory spikes on Render Free Tier 
     // which cause intermittent 502 errors when hitting 7 endpoints simultaneously.
-    const products = await apiGet('/api/products');
-    const watchlistIds = await apiGet('/api/watchlist');
-    const alerts = await apiGet('/api/alerts');
-    const categories = await apiGet('/api/categories');
-    const geo = await apiGet('/api/geo');
-    const brands = await apiGet('/api/brands');
-    const insights = await apiGet('/api/insights');
+    // Fetch SMALL JSON packets first for immediate UI feedback (KPIs, navigation, sidebar)
+    // Moving heavy '/api/products' fetch to the end to prevent blocking other UI updates.
+    const [watchlistIds, alerts, categories, geo, brands, insights] = await Promise.all([
+      apiGet('/api/watchlist'),
+      apiGet('/api/alerts'),
+      apiGet('/api/categories'),
+      apiGet('/api/geo'),
+      apiGet('/api/brands'),
+      apiGet('/api/insights'),
+    ]);
 
-    allProducts = products;
-    filteredProducts = [...allProducts];
     watchlist = new Set(watchlistIds);
     alertsData = alerts;
     categoriesData = categories;
@@ -70,17 +71,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     brandsData = brands;
     insightsData = insights;
 
-    // Initialize everything
+    // Initialize UI structure immediately
     initNavigation();
     initSidebar();
-    renderDashboard();
+    
+    // Call render and animate counters right away with what we have
+    renderDashboard(); 
+    updateWatchlistBadge();
+    
+    // NOW fetch the heavy products list in the background
+    const products = await apiGet('/api/products');
+    allProducts = products;
+    filteredProducts = [...allProducts];
+
+    // Final rendering updates
     renderScoutProducts();
     renderWatchlist();
     renderTrends();
     renderAlerts();
     initSearch();
     initModals();
-    updateWatchlistBadge();
     initTicker();
 
     showToast('Data loaded successfully!', 'success', '✅');
