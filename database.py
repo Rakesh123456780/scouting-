@@ -285,6 +285,50 @@ def seed_data(conn):
 
     conn.commit()
 
+    # Bulk Product Generation to reach ~2847 products
+    if cur.execute("SELECT COUNT(*) FROM products").fetchone()[0] < 2000:
+        import random
+        # Base data for generation
+        adjectives = ["Smart", "Portable", "Wireless", "Magnetic", "Ergonomic", "Advanced", "Compact", "Heavy-Duty", "Electric", "Digital", "Interactive", "Foldable", "Premium", "Ultra-Slim", "Rechargeable"]
+        nouns = {
+            "Electronics": [("Power Bank 10000mAh", "🔋"), ("Noise-Cancelling Earbuds", "🎧"), ("Bluetooth Speaker", "🔊"), ("Tablet Stand", "📱"), ("VR Headset Tracker", "🥽"), ("Drone with Camera", "🚁"), ("USB-C Hub", "🔌")],
+            "Health & Beauty": [("Posture Mat", "🧘"), ("Light Therapy Lamp", "💡"), ("Sleep Mask", "😴"), ("Foot Spa", "🦶"), ("Acupressure Mat", "🧘"), ("Facial Massager", "✨")],
+            "Home & Garden": [("Coffee Maker", "☕"), ("Air Purifier", "🌬️"), ("Smart Lock", "🔒"), ("Ceramic Knife Set", "🔪"), ("Bed Sheets Set", "🛏️"), ("Plush Throw Blanket", "🛋️")],
+            "Sports & Fitness": [("Dumbbell Set", "🏋️"), ("Treadmill Mat", "🏃"), ("Sleeping Bag", "🎒"), ("Resistance Bands", "💪"), ("Yoga Block", "🧘")],
+            "Toys & Games": [("Action Figure", "🦸"), ("Building Blocks", "🧱"), ("Remote Control Car", "🏎️"), ("Dollhouse", "🏠"), ("Water Gun", "🔫"), ("Magic Kit", "🎩")],
+            "Automotive": [("OBD2 Scanner", "💻"), ("Microfiber Towels", "🧽"), ("Jump Starter Power Bank", "⚡"), ("Car Cover", "🚗"), ("Scratch Repair Kit", "🛠️"), ("Steering Wheel Cover", "🏎️")]
+        }
+        brands = [b[1] for b in SEED_BRANDS] + ["TechPro", "HomeChef", "FlexFit", "LuxSilk", "ZenAroma", "DriveCharge", "NetSphere", "BuildBrain", "PetPro", "IronEdge", "GlowTech", "LitePro", "LensMaster", "TinkerKids", "HydroForce", "EcoKitch", "MeasurePro", "ChillKeep", "BlendGo", "LitePath", "PostureTech", "SoundMax"]
+        tags = ['["hot"]', '["new"]', '["trending"]', '["deal"]', '["hot","trending"]', '["new","trending"]', '["hot","deal"]', '["trending","deal"]', '["hot","new"]', '[]']
+        demands = ["Low", "Medium", "High", "Very High", "Growing"]
+
+        bulk_products = []
+        for i in range(2753):
+            category = random.choice(list(nouns.keys()))
+            noun_pair = random.choice(nouns[category])
+            name = f"{random.choice(adjectives)} {noun_pair[0]}"
+            emoji = noun_pair[1]
+            price = round(random.uniform(9.99, 149.99), 2)
+            original_price = round(price * random.uniform(1.1, 1.8), 2)
+            rating = round(random.uniform(3.5, 5.0), 1)
+            reviews = random.randint(50, 20000)
+            score = random.randint(30, 99)
+            product_tags = random.choice(tags)
+            sales = random.randint(100, 99000)
+            margin = random.randint(20, 85)
+            demand = random.choice(demands)
+            brand = random.choice(brands)
+            desc = f"High quality {name.lower()} perfect for your needs. Excellent value and highly rated by customers."
+            
+            bulk_products.append((name, category, price, original_price, emoji, rating, reviews, score, product_tags, sales, margin, demand, desc, brand))
+
+        cur.executemany(
+            """INSERT INTO products (name, category, price, original_price, emoji, rating, reviews, score, tags, sales, margin, demand, description, brand)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            bulk_products
+        )
+        conn.commit()
+
 
 def init_db():
     """Create tables and seed initial data."""
