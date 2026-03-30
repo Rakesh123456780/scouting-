@@ -163,24 +163,51 @@ async function renderDashboard() {
   const top = [...allProducts].sort((a, b) => b.score - a.score).slice(0, 4);
   container.innerHTML = top.map(p => productCardHTML(p)).join('');
   attachProductCardEvents(container);
-  initCharts();
+  
+  // Defer chart drawing slightly to ensure layout / offsetWidth is ready
+  requestAnimationFrame(() => {
+    setTimeout(initCharts, 50);
+  });
+  
   animateKPIs();
 }
 
 async function animateKPIs() {
   try {
     const dashData = await apiGet('/api/dashboard');
-    // Animate Products Scouted
-    const el = document.getElementById('kpiProducts');
-    let count = 0;
-    const target = dashData.totalProducts || 0;
-    if (target === 0) { el.textContent = '0'; return; }
-    const step = target / 60;
-    const timer = setInterval(() => {
-      count = Math.min(count + step, target);
-      el.textContent = Math.round(count).toLocaleString();
-      if (count >= target) clearInterval(timer);
-    }, 16);
+    
+    const animate = (id, target, isCurrency = false, isDec = false) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      let count = 0;
+      if (target === 0) { el.textContent = isCurrency ? '$0' : '0'; return; }
+      const duration = 1500; // ms
+      const startTime = performance.now();
+      
+      const update = (now) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = target * easeOut;
+        
+        if (isCurrency) {
+          el.textContent = '$' + (current >= 1000000 ? (current / 1000000).toFixed(1) + 'M' : current.toLocaleString());
+        } else if (isDec) {
+          el.textContent = current.toFixed(1);
+        } else {
+          el.textContent = Math.round(current).toLocaleString();
+        }
+        
+        if (progress < 1) requestAnimationFrame(update);
+      };
+      requestAnimationFrame(update);
+    };
+
+    animate('kpiProducts', dashData.totalProducts || 0);
+    animate('kpiWatchlist', dashData.watchlistCount || 0);
+    animate('kpiMarket', (dashData.marketOpportunity || 0) * 1000000, true);
+    animate('kpiTrending', dashData.trending || 0);
+    
   } catch (err) {
     console.error('KPI fetch error:', err);
   }
@@ -276,9 +303,9 @@ function drawCategoryChart() {
   canvas.width = canvas.offsetWidth || 340;
   canvas.height = 200;
 
-  const data = [30, 25, 18, 12, 9, 6];
-  const labels = ['Electronics', 'Health', 'Home', 'Sports', 'Toys', 'Auto'];
-  const colors = ['#8b5cf6', '#06b6d4', '#f97316', '#10b981', '#f59e0b', '#ef4444'];
+  const labels = categoriesData.map(c => c.name.substring(0, 8)) || ['Electronics', 'Health', 'Home', 'Sports', 'Toys', 'Auto'];
+  const data = categoriesData.map(c => c.count) || [30, 25, 18, 12, 9, 6];
+  const colors = ['#8b5cf6', '#06b6d4', '#f97316', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899'];
   const w = canvas.width, h = canvas.height;
   const cx = w / 2, cy = h / 2 - 10, r = Math.min(cx, cy) - 20;
 
@@ -287,12 +314,12 @@ function drawCategoryChart() {
   let startAngle = -Math.PI / 2;
 
   data.forEach((val, i) => {
-    const angle = (val / total) * Math.PI * 2;
+    const angle = (val / (total || 1)) * Math.PI * 2;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, startAngle, startAngle + angle);
     ctx.closePath();
-    ctx.fillStyle = colors[i]; ctx.fill();
+    ctx.fillStyle = colors[i % colors.length]; ctx.fill();
 
     // Donut hole
     ctx.beginPath();
@@ -304,7 +331,7 @@ function drawCategoryChart() {
 
   // Center text
   ctx.fillStyle = '#f0f4ff'; ctx.font = 'bold 18px Inter'; ctx.textAlign = 'center';
-  ctx.fillText('6', cx, cy + 4);
+  ctx.fillText(data.length, cx, cy + 4);
   ctx.fillStyle = 'rgba(139,155,200,0.7)'; ctx.font = '10px Inter';
   ctx.fillText('Categories', cx, cy + 18);
 
