@@ -56,10 +56,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>My Profile</span>
       </button>
-      <button class="nav-item" data-section="admin" id="nav-admin">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>Admin Panel</span>
-      </button>
+
     </nav>
     
     <div class="sidebar-footer">
@@ -358,41 +355,15 @@
       </div>
     </section>
 
-    <!-- ===== ADMIN SECTION ===== -->
-    <section class="section" id="section-admin">
-      <div class="admin-grid">
-        <div class="admin-main">
-          <div class="section-header-row">
-            <h3 class="section-heading">🕵️ Live Activity Stream</h3>
-            <button class="btn btn-sm btn-outline" id="refreshActivity">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Refresh
-            </button>
-          </div>
-          <div class="activity-feed" id="activityFeed">
-            <!-- Dynamically populated -->
-          </div>
-        </div>
-        <div class="admin-sidebar">
-          <div class="stat-card">
-            <h4>System Growth</h4>
-            <div class="stat-item">
-              <span>Total Users</span>
-              <strong id="adminTotalUsers">0</strong>
-            </div>
-            <div class="stat-item">
-              <span>Today's Actions</span>
-              <strong id="adminTodayActions">0</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+
   </main>
 
   <!-- Auth Modal -->
   <div class="modal-overlay" id="authModal">
     <div class="modal modal-sm auth-modal">
+      <button class="modal-close" id="authModalClose">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
       <div class="auth-header">
         <div class="logo-icon sm">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>

@@ -200,23 +200,7 @@ def update_profile():
 #  ADMIN ROUTES
 # ══════════════════════════════════════════════════════════════════
 
-@app.route("/api/admin/activity", methods=["GET"])
-def get_admin_activity():
-    if "user" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    conn = get_connection()
-    logs = conn.execute("SELECT * FROM activity_logs ORDER BY timestamp DESC LIMIT 50").fetchall()
-    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-    today_actions = conn.execute("SELECT COUNT(*) FROM activity_logs WHERE date(timestamp) = date('now')").fetchone()[0]
-    conn.close()
-    
-    return jsonify({
-        "logs": [row_to_dict(l) for l in logs],
-        "totalUsers": total_users,
-        "todayActions": today_actions
-    })
-
+# — Dashboard & Charts —
 
 # ══════════════════════════════════════════════════════════════════
 #  API  ROUTES

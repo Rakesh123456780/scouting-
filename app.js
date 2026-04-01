@@ -155,7 +155,6 @@ function navigateTo(section) {
     trends: ['Market Trends', 'Real-time market and trend intelligence'],
     alerts: ['Price Alerts', 'Manage your price and trend alerts'],
     profile: ['User Profile', 'Manage your account settings'],
-    admin: ['Admin Dashboard', 'System overview and live activity'],
   };
 
   const [title, subtitle] = titles[section] || ['ScoutIQ', ''];
@@ -170,15 +169,7 @@ function navigateTo(section) {
     }, 0);
   }
   if (section === 'watchlist') renderWatchlist();
-  if (section === 'admin') {
-    if (!sessionUser) {
-       showToast('Login required for Admin Panel', 'warning');
-       openAuthModal();
-       navigateTo('dashboard');
-    } else {
-       renderAdmin();
-    }
-  }
+
 }
 
 // =========== SIDEBAR ===========
@@ -1342,6 +1333,16 @@ function initAuthModal() {
   document.getElementById('btnVerify').onclick = () => handleAuth('verify');
   document.getElementById('logoutBtn').onclick = logout;
   
+  document.getElementById('authModalClose').onclick = () => {
+    document.getElementById('authModal').classList.remove('open');
+  };
+  
+  document.getElementById('authModal').onclick = (e) => {
+    if (e.target.id === 'authModal') {
+      document.getElementById('authModal').classList.remove('open');
+    }
+  };
+  
   // Profile form
   document.getElementById('profileForm').onsubmit = async (e) => {
     e.preventDefault();
@@ -1421,36 +1422,7 @@ function updateUserUI() {
   }
 }
 
-/* ==========================================
-   ADMIN PANEL LOGIC
-   ========================================== */
-async function renderAdmin() {
-  try {
-    const data = await apiGet('/api/admin/activity');
-    document.getElementById('adminTotalUsers').textContent = data.totalUsers;
-    document.getElementById('adminTodayActions').textContent = data.todayActions;
-    
-    const feed = document.getElementById('activityFeed');
-    feed.innerHTML = data.logs.map(log => `
-      <div class="activity-item ${log.action}">
-        <div class="activity-icon">
-          ${log.action === 'login' ? '🔑' : log.action === 'logout' ? '⬅️' : log.action === 'registration' ? '👋' : '📝'}
-        </div>
-        <div class="activity-content">
-          <div class="activity-header">
-            <span class="activity-user">${log.userEmail}</span>
-            <span class="activity-time">${new Date(log.timestamp).toLocaleTimeString()}</span>
-          </div>
-          <div class="activity-action">${log.action.toUpperCase()}: ${log.details || ''}</div>
-        </div>
-      </div>
-    `).join('');
-  } catch (err) {
-    showToast('Failed to fetch admin data', 'warning');
-  }
-}
 
-document.getElementById('refreshActivity').onclick = renderAdmin;
 document.getElementById('notifBtn').onclick = () => {
     if (!sessionUser) openAuthModal();
     else showToast('No new notifications', 'info', '🔔');
