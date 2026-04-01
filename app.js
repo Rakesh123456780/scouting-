@@ -13,6 +13,9 @@ let currentSection = 'dashboard';
 let allProducts = [];
 let filteredProducts = [];
 let displayedCount = 12;
+let dashDisplayedCount = 15;
+let isLoadingMore = false;
+let isDashLoadingMore = false;
 let charts = {};
 let sessionUser = null;
 
@@ -169,7 +172,8 @@ function navigateTo(section) {
     }, 0);
   }
   if (section === 'watchlist') renderWatchlist();
-
+  if (section === 'dashboard') renderDashboard();
+  if (section === 'trends') renderTrends();
 }
 
 // =========== SIDEBAR ===========
@@ -185,10 +189,7 @@ function initSidebar() {
 
 // =========== DASHBOARD ===========
 async function renderDashboard() {
-  const container = document.getElementById('dashboardProducts');
-  const top = [...allProducts].sort((a, b) => b.score - a.score).slice(0, 4);
-  container.innerHTML = top.map(p => productCardHTML(p)).join('');
-  attachProductCardEvents(container);
+  renderDashboardProducts();
   
   // Defer chart drawing slightly to ensure layout / offsetWidth is ready
   requestAnimationFrame(() => {
@@ -196,6 +197,42 @@ async function renderDashboard() {
   });
   
   animateKPIs();
+}
+
+function renderDashboardProducts() {
+  const container = document.getElementById('dashboardProducts');
+  if (!container) return;
+  
+  const top = [...allProducts].sort((a, b) => b.score - a.score);
+  const slice = top.slice(0, dashDisplayedCount);
+  
+  container.classList.add('product-scroll-horizontal');
+  container.innerHTML = slice.map(p => productCardHTML(p)).join('');
+  attachProductCardEvents(container);
+  
+  // Add horizontal scroll listener for "infinite" load
+  if (!container.dataset.hasListener) {
+    container.addEventListener('scroll', () => {
+      if (isDashLoadingMore) return;
+      
+      const scrollLeft = container.scrollLeft;
+      const scrollWidth = container.scrollWidth;
+      const clientWidth = container.clientWidth;
+      
+      // If within 400px of the right end
+      if (scrollLeft + clientWidth >= scrollWidth - 400) {
+        if (top.length > dashDisplayedCount) {
+          isDashLoadingMore = true;
+          setTimeout(() => {
+            dashDisplayedCount += 10;
+            renderDashboardProducts();
+            isDashLoadingMore = false;
+          }, 50);
+        }
+      }
+    });
+    container.dataset.hasListener = 'true';
+  }
 }
 
 async function animateKPIs() {
@@ -252,8 +289,9 @@ function drawActivityChart() {
   canvas.height = 200;
 
   apiGet('/api/charts/activity').then(res => {
-    const labels = res.labels;
-    const data = res.data;
+    const labels = res.labels || [];
+    const data = res.data || [];
+    if (data.length === 0) return;
 
   const w = canvas.width, h = canvas.height;
   const pad = { top: 20, right: 20, bottom: 30, left: 40 };
@@ -331,14 +369,22 @@ function drawCategoryChart() {
   canvas.width = canvas.offsetWidth || 340;
   canvas.height = 200;
 
-  const labels = categoriesData.map(c => c.name.substring(0, 8)) || ['Electronics', 'Health', 'Home', 'Sports', 'Toys', 'Auto'];
-  const data = categoriesData.map(c => c.count) || [30, 25, 18, 12, 9, 6];
+  if (!categoriesData || categoriesData.length === 0) {
+    ctx.fillStyle = 'rgba(139,155,200,0.5)';
+    ctx.font = '12px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('No data available', cx, cy);
+    return;
+  }
+  const labels = categoriesData.map(c => c.name.substring(0, 8));
+  const data = categoriesData.map(c => c.count);
   const colors = ['#8b5cf6', '#06b6d4', '#f97316', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#ec4899'];
   const w = canvas.width, h = canvas.height;
   const cx = w / 2, cy = h / 2 - 10, r = Math.min(cx, cy) - 20;
 
   ctx.clearRect(0, 0, w, h);
   const total = data.reduce((a, b) => a + b, 0);
+  if (total === 0) return;
   let startAngle = -Math.PI / 2;
 
   data.forEach((val, i) => {
@@ -384,15 +430,17 @@ function drawPriceChart() {
   canvas.height = 250;
 
   apiGet('/api/charts/trends').then(res => {
-    const months = res.months;
-    const series = res.series;
+    const months = res.months || [];
+    const series = res.series || [];
+    if (series.length === 0) return;
 
   const w = canvas.width, h = canvas.height;
   const pad = { top: 20, right: 20, bottom: 40, left: 50 };
   const chartW = w - pad.left - pad.right;
   const chartH = h - pad.top - pad.bottom;
 
-  const allVals = series.flatMap(s => s.data);
+  const allVals = series.flatMap(s => s.data || []);
+  if (allVals.length === 0) return;
   const minVal = Math.min(...allVals) * 0.9, maxVal = Math.max(...allVals) * 1.1;
 
   ctx.clearRect(0, 0, w, h);
@@ -518,12 +566,47 @@ function renderProductGrid() {
   const slice = filteredProducts.slice(0, displayedCount);
   container.innerHTML = slice.map(p => productCardHTML(p)).join('');
   attachProductCardEvents(container);
-  document.getElementById('resultsCount').innerHTML = `Showing <strong>${slice.length}</strong> of <strong>${filteredProducts.length}</strong> products`;
-  document.getElementById('loadMoreBtn').style.display = filteredProducts.length > displayedCount ? 'block' : 'none';
+  
+  if (document.getElementById('resultsCount')) {
+    document.getElementById('resultsCount').innerHTML = `Showing <strong>${slice.length}</strong> of <strong>${filteredProducts.length}</strong> products`;
+  }
+  
+  // Toggle Show All button visibility
+  const showAllBtn = document.getElementById('showAllBtn');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  const hasMore = filteredProducts.length > displayedCount;
+  
+  if (showAllBtn) {
+    showAllBtn.style.display = hasMore ? 'inline-block' : 'none';
+  }
+  if (loadMoreBtn) {
+    loadMoreBtn.style.display = hasMore ? 'block' : 'none';
+  }
 }
 
+// --- Infinite Scroll Implementation ---
+window.addEventListener('scroll', () => {
+  if (currentSection !== 'scout' || isLoadingMore) return;
+  
+  const scrollHeight = document.documentElement.scrollHeight;
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  const clientHeight = window.innerHeight;
+  
+  // Trigger when 300px from bottom for smoother experience
+  if (scrollTop + clientHeight >= scrollHeight - 400) {
+    if (filteredProducts.length > displayedCount) {
+      isLoadingMore = true;
+      setTimeout(() => {
+        displayedCount += 12; // Load a full row or two
+        renderProductGrid();
+        isLoadingMore = false;
+      }, 50);
+    }
+  }
+});
+
 document.getElementById('loadMoreBtn').addEventListener('click', () => {
-  displayedCount += 8;
+  displayedCount += 12;
   renderProductGrid();
 });
 
@@ -556,6 +639,11 @@ function applyFilters() {
   displayedCount = 12;
   renderProductGrid();
 }
+
+document.getElementById('showAllBtn').addEventListener('click', () => {
+    displayedCount = filteredProducts.length;
+    renderProductGrid();
+});
 
 // Grid / List view toggle
 document.getElementById('gridViewBtn').addEventListener('click', () => {
@@ -1331,6 +1419,7 @@ function initAuthModal() {
   document.getElementById('btnLogin').onclick = () => handleAuth('login');
   document.getElementById('btnRegister').onclick = () => handleAuth('register');
   document.getElementById('btnVerify').onclick = () => handleAuth('verify');
+  document.getElementById('resendOtp').onclick = () => handleAuth('login');
   document.getElementById('logoutBtn').onclick = logout;
   
   document.getElementById('authModalClose').onclick = () => {
@@ -1347,7 +1436,8 @@ function initAuthModal() {
   document.getElementById('profileForm').onsubmit = async (e) => {
     e.preventDefault();
     const data = {
-      phone: document.getElementById('phoneNumber').value,
+      name: document.getElementById('fullName').value,
+      phoneNumber: document.getElementById('phoneNumber').value,
       password: document.getElementById('newPassword').value
     };
     try {
