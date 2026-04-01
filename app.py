@@ -2,9 +2,10 @@
 ScoutIQ — Flask REST API  (app.py)
 Serves all product / watchlist / alert data from SQLite.
 """
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, session
 from flask_cors import CORS
-import json, os
+from werkzeug.security import generate_password_hash, check_password_hash
+import json, os, random, datetime
 import sqlite3
 from dotenv import load_dotenv
 from database import get_connection, init_db
@@ -15,6 +16,7 @@ load_dotenv()
 # ── Bootstrap ────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "scoutiq_dev_key_123")
 CORS(app)
 
 # Initialise DB on first run
@@ -36,11 +38,26 @@ def row_to_dict(row):
         "created_at": "createdAt",
         "product_id": "productId",
         "added_at": "addedAt",
+        "phone_number": "phoneNumber",
+        "otp_code": "otpCode",
+        "is_verified": "isVerified",
+        "user_email": "userEmail",
     }
     for old, new in mapping.items():
         if old in d:
             d[new] = d.pop(old)
     return d
+
+
+def log_activity(email, action, details=None):
+    """Log a user action to the activity_logs table."""
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO activity_logs (user_email, action, details) VALUES (?, ?, ?)",
+        (email, action, details)
+    )
+    conn.commit()
+    conn.close()
 
 
 # ── Static file serving ─────────────────────────────────────────
@@ -53,16 +70,181 @@ def dashboard():
     return send_from_directory(BASE_DIR, "index.html")
 
 
-
 @app.route("/<path:filename>")
 def static_files(filename):
     return send_from_directory(BASE_DIR, filename)
 
 
 # ══════════════════════════════════════════════════════════════════
+#  AUTH ROUTES
+# ══════════════════════════════════════════════════════════════════
+
+@app.route("/api/auth/register", methods=["POST"])
+def register():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "Email and password required"}), 400
+
+    conn = get_connection()
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    if user:
+        conn.close()
+        return jsonify({"error": "User already exists"}), 409
+
+    hashed = generate_password_hash(password)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, hashed))
+    conn.commit()
+    conn.close()
+    
+    log_activity(email, "registration", "User created account")
+    return jsonify({"message": "Registration successful. Please login."}), 201
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def login():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+
+    conn = get_connection()
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    if not user or not check_password_hash(user["password"], password):
+        conn.close()
+        return jsonify({"error": "Invalid email or password"}), 401
+
+    # Generate OTP
+    otp = str(random.randint(100000, 999999))
+    conn.execute("UPDATE users SET otp_code = ? WHERE id = ?", (otp, user["id"]))
+    conn.commit()
+    conn.close()
+
+    # In a real app, send email here. For now, we'll log it for the user to see or return it if dev mode.
+    print(f"\n[AUTH] OTP for {email}: {otp}\n")
+    
+    return jsonify({"message": "OTP sent to your email", "email": email})
+
+
+@app.route("/api/auth/verify", methods=["POST"])
+def verify():
+    data = request.json
+    email = data.get("email")
+    otp = data.get("otp")
+
+    conn = get_connection()
+    user = conn.execute("SELECT * FROM users WHERE email = ? AND otp_code = ?", (email, otp)).fetchone()
+    if not user:
+        conn.close()
+        return jsonify({"error": "Invalid or expired OTP"}), 401
+
+    # Clear OTP and mark as verified
+    conn.execute("UPDATE users SET otp_code = NULL, is_verified = 1 WHERE id = ?", (user["id"],))
+    conn.commit()
+    conn.close()
+
+    session["user"] = email
+    log_activity(email, "login", "User successfully logged in with OTP")
+    
+    return jsonify({"message": "Login successful", "user": {"email": email}})
+
+
+@app.route("/api/auth/session", methods=["GET"])
+def get_session():
+    if "user" in session:
+        conn = get_connection()
+        user = conn.execute("SELECT email, phone_number FROM users WHERE email = ?", (session["user"],)).fetchone()
+        conn.close()
+        if user:
+            return jsonify({"loggedIn": True, "user": row_to_dict(user)})
+    return jsonify({"loggedIn": False})
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def logout():
+    email = session.get("user")
+    if email:
+        log_activity(email, "logout", "User logged out")
+    session.pop("user", None)
+    return jsonify({"message": "Logged out"})
+
+
+@app.route("/api/auth/profile", methods=["PUT"])
+def update_profile():
+    if "user" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    email = session["user"]
+    new_name = data.get("name") # In our simplified schema we don't have name, but we can log it or add it
+    phone = data.get("phoneNumber")
+    password = data.get("password")
+
+    conn = get_connection()
+    if password:
+        hashed = generate_password_hash(password)
+        conn.execute("UPDATE users SET password = ?, phone_number = ? WHERE email = ?", (hashed, phone, email))
+    else:
+        conn.execute("UPDATE users SET phone_number = ? WHERE email = ?", (phone, email))
+    
+    conn.commit()
+    conn.close()
+    
+    log_activity(email, "update", "User updated profile details")
+    return jsonify({"message": "Profile updated"})
+
+
+# ══════════════════════════════════════════════════════════════════
+#  ADMIN ROUTES
+# ══════════════════════════════════════════════════════════════════
+
+@app.route("/api/admin/activity", methods=["GET"])
+def get_admin_activity():
+    if "user" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    conn = get_connection()
+    logs = conn.execute("SELECT * FROM activity_logs ORDER BY timestamp DESC LIMIT 50").fetchall()
+    total_users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    today_actions = conn.execute("SELECT COUNT(*) FROM activity_logs WHERE date(timestamp) = date('now')").fetchone()[0]
+    conn.close()
+    
+    return jsonify({
+        "logs": [row_to_dict(l) for l in logs],
+        "totalUsers": total_users,
+        "todayActions": today_actions
+    })
+
+
+# ══════════════════════════════════════════════════════════════════
 #  API  ROUTES
 # ══════════════════════════════════════════════════════════════════
 
+
+
+# ── Charts & Trends ──────────────────────────────────────────────
+
+@app.route("/api/charts/activity", methods=["GET"])
+def get_activity_chart():
+    """Return mock activity data for the last 7 days."""
+    # In a real app, this would query activity_logs or a dedicated metrics table.
+    labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    data = [random.randint(40, 130) for _ in range(7)]
+    return jsonify({"labels": labels, "data": data})
+
+
+@app.route("/api/charts/trends", methods=["GET"])
+def get_price_trends():
+    """Return price trend data for top categories."""
+    months = ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]
+    series = [
+        {"label": "Electronics", "color": "#8b5cf6", "data": [random.randint(110, 170) for _ in range(8)]},
+        {"label": "Sports", "color": "#06b6d4", "data": [random.randint(40, 70) for _ in range(8)]},
+        {"label": "Health", "color": "#10b981", "data": [random.randint(55, 90) for _ in range(8)]},
+    ]
+    return jsonify({"months": months, "series": series})
 
 
 # ── Products ─────────────────────────────────────────────────────

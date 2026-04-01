@@ -89,6 +89,23 @@ def create_tables(conn):
         text TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS users (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        email       TEXT    UNIQUE NOT NULL,
+        password    TEXT    NOT NULL,
+        phone_number TEXT,
+        otp_code    TEXT,
+        is_verified INTEGER DEFAULT 0,
+        created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS activity_logs (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_email  TEXT    NOT NULL,
+        action      TEXT    NOT NULL,
+        details     TEXT,
+        timestamp   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
     """)
     conn.commit()
 

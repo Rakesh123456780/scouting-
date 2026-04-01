@@ -14,6 +14,7 @@ let allProducts = [];
 let filteredProducts = [];
 let displayedCount = 12;
 let charts = {};
+let sessionUser = null;
 
 // — Mutable copies of server data for local UI —
 let alertsData = [];
@@ -51,6 +52,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   showToast('Loading data from server…', 'info', '⏳');
 
   try {
+    // Check session first
+    const sessionRes = await apiGet('/api/auth/session');
+    if (sessionRes.loggedIn) {
+      sessionUser = sessionRes.user;
+      updateUserUI();
+    } else {
+      // If not logged in, keep showing guest or force login
+      // openAuthModal(); // Optional: force login
+    }
+
     // Fetch data sequentially to prevent CPU/memory spikes on Render Free Tier 
     // which cause intermittent 502 errors when hitting 7 endpoints simultaneously.
     // Fetch SMALL JSON packets first for immediate UI feedback (KPIs, navigation, sidebar)
@@ -74,6 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize UI structure immediately
     initNavigation();
     initSidebar();
+    initAuthModal(); // NEW
     
     // Call render and animate counters right away with what we have
     renderDashboard(); 
@@ -85,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     filteredProducts = [...allProducts];
 
     // Final rendering updates
+    renderDashboard();
     renderScoutProducts();
     renderWatchlist();
     renderTrends();
@@ -100,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Still init UI elements even if API fails
     initNavigation();
     initSidebar();
+    initAuthModal();
     initSearch();
     initModals();
   }
@@ -140,6 +154,8 @@ function navigateTo(section) {
     compare: ['Compare Products', 'Side-by-side product analysis'],
     trends: ['Market Trends', 'Real-time market and trend intelligence'],
     alerts: ['Price Alerts', 'Manage your price and trend alerts'],
+    profile: ['User Profile', 'Manage your account settings'],
+    admin: ['Admin Dashboard', 'System overview and live activity'],
   };
 
   const [title, subtitle] = titles[section] || ['ScoutIQ', ''];
@@ -154,6 +170,15 @@ function navigateTo(section) {
     }, 0);
   }
   if (section === 'watchlist') renderWatchlist();
+  if (section === 'admin') {
+    if (!sessionUser) {
+       showToast('Login required for Admin Panel', 'warning');
+       openAuthModal();
+       navigateTo('dashboard');
+    } else {
+       renderAdmin();
+    }
+  }
 }
 
 // =========== SIDEBAR ===========
@@ -235,8 +260,9 @@ function drawActivityChart() {
   canvas.width = canvas.offsetWidth || 600;
   canvas.height = 200;
 
-  const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const data = [42, 78, 55, 91, 67, 83, 120];
+  apiGet('/api/charts/activity').then(res => {
+    const labels = res.labels;
+    const data = res.data;
 
   const w = canvas.width, h = canvas.height;
   const pad = { top: 20, right: 20, bottom: 30, left: 40 };
@@ -305,6 +331,7 @@ function drawActivityChart() {
     ctx.font = '10px Inter'; ctx.textAlign = 'center';
     ctx.fillText(labels[i], pt.x, h - pad.bottom + 14);
   });
+  });
 }
 
 function drawCategoryChart() {
@@ -365,12 +392,9 @@ function drawPriceChart() {
   canvas.width = canvas.offsetWidth || 400;
   canvas.height = 250;
 
-  const months = ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
-  const series = [
-    { label: 'Electronics', color: '#8b5cf6', data: [120, 125, 118, 140, 155, 148, 160, 165] },
-    { label: 'Sports', color: '#06b6d4', data: [45, 48, 44, 52, 55, 50, 58, 62] },
-    { label: 'Health', color: '#10b981', data: [60, 58, 65, 72, 68, 75, 78, 82] },
-  ];
+  apiGet('/api/charts/trends').then(res => {
+    const months = res.months;
+    const series = res.series;
 
   const w = canvas.width, h = canvas.height;
   const pad = { top: 20, right: 20, bottom: 40, left: 50 };
@@ -422,6 +446,7 @@ function drawPriceChart() {
     ctx.fillStyle = s.color; ctx.fillRect(x, h - 8, 12, 3);
     ctx.fillStyle = 'rgba(139,155,200,0.7)'; ctx.font = '9px Inter'; ctx.textAlign = 'left';
     ctx.fillText(s.label, x + 16, h - 4);
+  });
   });
 }
 
@@ -1286,3 +1311,148 @@ function initTicker() {
     setTimeout(() => { items[idx].style.color = 'var(--cyan-light)'; }, 800);
   }, 4000);
 }
+
+/* ==========================================
+   NEW: AUTHENTICATION & PROFILE
+   ========================================== */
+function initAuthModal() {
+  const modal = document.getElementById('authModal');
+  const tabs = document.querySelectorAll('.auth-tab');
+  const loginWrap = document.getElementById('loginFormWrap');
+  const regWrap = document.getElementById('registerFormWrap');
+  const otpWrap = document.getElementById('otpFormWrap');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      if (tab.id === 'tabLogin') {
+        loginWrap.style.display = 'block';
+        regWrap.style.display = 'none';
+      } else {
+        loginWrap.style.display = 'none';
+        regWrap.style.display = 'block';
+      }
+      otpWrap.style.display = 'none';
+    });
+  });
+
+  document.getElementById('btnLogin').onclick = () => handleAuth('login');
+  document.getElementById('btnRegister').onclick = () => handleAuth('register');
+  document.getElementById('btnVerify').onclick = () => handleAuth('verify');
+  document.getElementById('logoutBtn').onclick = logout;
+  
+  // Profile form
+  document.getElementById('profileForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const data = {
+      phone: document.getElementById('phoneNumber').value,
+      password: document.getElementById('newPassword').value
+    };
+    try {
+      await apiPut('/api/auth/profile', data);
+      showToast('Profile updated!', 'success', '👤');
+    } catch (err) {
+      showToast('Failed to update profile', 'warning');
+    }
+  };
+}
+
+function openAuthModal() {
+  document.getElementById('authModal').classList.add('open');
+}
+
+async function handleAuth(type) {
+  const email = type === 'login' ? document.getElementById('loginEmail').value : 
+               type === 'register' ? document.getElementById('regEmail').value : 
+               document.getElementById('sentEmail').textContent;
+  
+  if (type === 'login' || type === 'register') {
+    const password = document.getElementById(type === 'login' ? 'loginPassword' : 'regPassword').value;
+    try {
+      const res = await apiPost(`/api/auth/${type}`, { email, password });
+      if (type === 'login') {
+        document.getElementById('loginFormWrap').style.display = 'none';
+        document.getElementById('registerFormWrap').style.display = 'none';
+        document.getElementById('otpFormWrap').style.display = 'block';
+        document.getElementById('sentEmail').textContent = email;
+        showToast(res.message, 'info', '📧');
+      } else {
+        showToast(res.message, 'success', '✅');
+        document.getElementById('tabLogin').click();
+      }
+    } catch (err) {
+      showToast(err.message || 'Auth failed', 'warning');
+    }
+  } else if (type === 'verify') {
+    const otp = document.getElementById('otpCode').value;
+    try {
+      const res = await apiPost('/api/auth/verify', { email, otp });
+      sessionUser = res.user;
+      updateUserUI();
+      document.getElementById('authModal').classList.remove('open');
+      showToast('Welcome back!', 'success', '🚀');
+    } catch (err) {
+      showToast('Invalid code', 'warning');
+    }
+  }
+}
+
+async function logout() {
+  try {
+    await apiPost('/api/auth/logout');
+    sessionUser = null;
+    updateUserUI();
+    showToast('Logged out', 'info');
+    navigateTo('dashboard');
+  } catch (err) {}
+}
+
+function updateUserUI() {
+  const isGuest = !sessionUser;
+  document.getElementById('userName').textContent = isGuest ? 'Guest User' : sessionUser.email.split('@')[0];
+  document.getElementById('userAvatar').textContent = isGuest ? 'GU' : sessionUser.email.substring(0, 2).toUpperCase();
+  document.getElementById('profileName').textContent = isGuest ? 'Guest User' : sessionUser.email.split('@')[0];
+  document.getElementById('profileEmail').textContent = isGuest ? 'Sign in to sync' : sessionUser.email;
+  
+  if (sessionUser) {
+    document.getElementById('fullName').value = sessionUser.email.split('@')[0];
+    document.getElementById('phoneNumber').value = sessionUser.phoneNumber || '';
+  }
+}
+
+/* ==========================================
+   ADMIN PANEL LOGIC
+   ========================================== */
+async function renderAdmin() {
+  try {
+    const data = await apiGet('/api/admin/activity');
+    document.getElementById('adminTotalUsers').textContent = data.totalUsers;
+    document.getElementById('adminTodayActions').textContent = data.todayActions;
+    
+    const feed = document.getElementById('activityFeed');
+    feed.innerHTML = data.logs.map(log => `
+      <div class="activity-item ${log.action}">
+        <div class="activity-icon">
+          ${log.action === 'login' ? '🔑' : log.action === 'logout' ? '⬅️' : log.action === 'registration' ? '👋' : '📝'}
+        </div>
+        <div class="activity-content">
+          <div class="activity-header">
+            <span class="activity-user">${log.userEmail}</span>
+            <span class="activity-time">${new Date(log.timestamp).toLocaleTimeString()}</span>
+          </div>
+          <div class="activity-action">${log.action.toUpperCase()}: ${log.details || ''}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    showToast('Failed to fetch admin data', 'warning');
+  }
+}
+
+document.getElementById('refreshActivity').onclick = renderAdmin;
+document.getElementById('notifBtn').onclick = () => {
+    if (!sessionUser) openAuthModal();
+    else showToast('No new notifications', 'info', '🔔');
+};
+
