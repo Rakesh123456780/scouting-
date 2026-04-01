@@ -61,8 +61,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       sessionUser = sessionRes.user;
       updateUserUI();
     } else {
-      // If not logged in, keep showing guest or force login
-      // openAuthModal(); // Optional: force login
+      // Direct prompt for login if no session
+      initAuthModal();
+      openAuthModal();
+      showToast('Please sign in to continue', 'info', '🔐');
     }
 
     // Fetch data sequentially to prevent CPU/memory spikes on Render Free Tier 
@@ -88,16 +90,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize UI structure immediately
     initNavigation();
     initSidebar();
-    initAuthModal(); // NEW
+    if (sessionUser) initAuthModal();
     
     // Call render and animate counters right away with what we have
     renderDashboard(); 
     updateWatchlistBadge();
-    
-    if (!sessionUser) {
-      openAuthModal();
-      showToast('Please sign in to access your dashboard', 'info', '🔐');
-    }
     
     // FETCH products in background
     const products = await apiGet('/api/products');
