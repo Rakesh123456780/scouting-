@@ -206,6 +206,7 @@ function renderDashboardProducts() {
   const top = [...allProducts].sort((a, b) => b.score - a.score);
   const slice = top.slice(0, dashDisplayedCount);
   
+  container.classList.remove('product-grid');
   container.classList.add('product-scroll-horizontal');
   container.innerHTML = slice.map(p => productCardHTML(p)).join('');
   attachProductCardEvents(container);
