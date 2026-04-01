@@ -94,7 +94,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderDashboard(); 
     updateWatchlistBadge();
     
-    // NOW fetch the heavy products list in the background
+    if (!sessionUser) {
+      openAuthModal();
+      showToast('Please sign in to access your dashboard', 'info', '🔐');
+    }
+    
+    // FETCH products in background
     const products = await apiGet('/api/products');
     allProducts = products;
     filteredProducts = [...allProducts];
