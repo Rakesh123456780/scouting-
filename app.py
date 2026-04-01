@@ -114,18 +114,18 @@ def login():
     user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
     if not user or not check_password_hash(user["password"], password):
         conn.close()
-        return jsonify({"error": "Invalid email or password"}), 401
+        return jsonify({"message": "Invalid credentials"}), 401
 
-    # Generate OTP
-    otp = str(random.randint(100000, 999999))
-    conn.execute("UPDATE users SET otp_code = ? WHERE id = ?", (otp, user["id"]))
+    # Mark as verified immediately for this session
+    session.permanent = True
+    session["user"] = email
+    
+    # We can still track the login action
+    conn.execute("INSERT INTO activity_logs (user_email, action, details) VALUES (?, 'login', 'Direct login complete')", (email,))
     conn.commit()
     conn.close()
 
-    # In a real app, send email here. For now, we'll log it for the user to see or return it if dev mode.
-    print(f"\n[AUTH] OTP for {email}: {otp}\n")
-    
-    return jsonify({"message": "OTP sent to your email", "email": email})
+    return jsonify({"message": "Login successful", "user": row_to_dict(user)}), 200
 
 
 @app.route("/api/auth/verify", methods=["POST"])

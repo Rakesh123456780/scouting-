@@ -1419,8 +1419,6 @@ function initAuthModal() {
 
   document.getElementById('btnLogin').onclick = () => handleAuth('login');
   document.getElementById('btnRegister').onclick = () => handleAuth('register');
-  document.getElementById('btnVerify').onclick = () => handleAuth('verify');
-  document.getElementById('resendOtp').onclick = () => handleAuth('login');
   document.getElementById('logoutBtn').onclick = logout;
   
   document.getElementById('authModalClose').onclick = () => {
@@ -1464,13 +1462,12 @@ async function handleAuth(type) {
     try {
       const res = await apiPost(`/api/auth/${type}`, { email, password });
       if (type === 'login') {
-        document.getElementById('loginFormWrap').style.display = 'none';
-        document.getElementById('registerFormWrap').style.display = 'none';
-        document.getElementById('otpFormWrap').style.display = 'block';
-        document.getElementById('sentEmail').textContent = email;
-        showToast(res.message, 'info', '📧');
+        sessionUser = res.user;
+        updateUserUI();
+        document.getElementById('authModal').classList.remove('open');
+        showToast('Login successful!', 'success', '🚀');
       } else {
-        showToast(res.message, 'success', '✅');
+        showToast('Registration successful! Please login.', 'success', '✅');
         document.getElementById('tabLogin').click();
       }
     } catch (err) {
