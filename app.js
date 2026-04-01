@@ -1437,12 +1437,17 @@ function initAuthModal() {
   document.getElementById('profileForm').onsubmit = async (e) => {
     e.preventDefault();
     const data = {
-      name: document.getElementById('fullName').value,
+      fullName: document.getElementById('fullName').value,
       phoneNumber: document.getElementById('phoneNumber').value,
-      password: document.getElementById('newPassword').value
+      password: document.getElementById('newPassword').value,
+      company: document.getElementById('companyName').value,
+      industry: document.getElementById('industry').value,
+      bio: document.getElementById('profileBio').value
     };
     try {
-      await apiPut('/api/auth/profile', data);
+      const res = await apiPut('/api/auth/profile', data);
+      sessionUser = res.user;
+      updateUserUI();
       showToast('Profile updated!', 'success', '👤');
     } catch (err) {
       showToast('Failed to update profile', 'warning');
@@ -1507,8 +1512,15 @@ function updateUserUI() {
   document.getElementById('profileEmail').textContent = isGuest ? 'Sign in to sync' : sessionUser.email;
   
   if (sessionUser) {
-    document.getElementById('fullName').value = sessionUser.email.split('@')[0];
+    document.getElementById('fullName').value = sessionUser.fullName || sessionUser.email.split('@')[0];
     document.getElementById('phoneNumber').value = sessionUser.phoneNumber || '';
+    document.getElementById('companyName').value = sessionUser.company || '';
+    document.getElementById('industry').value = sessionUser.industry || '';
+    document.getElementById('profileBio').value = sessionUser.bio || '';
+    
+    const plan = sessionUser.plan || 'Free';
+    document.getElementById('profilePlan').textContent = `${plan.toUpperCase()} PLAN`;
+    document.getElementById('userPlan').textContent = `${plan} Plan`;
   }
 }
 

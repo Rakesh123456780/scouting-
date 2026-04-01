@@ -42,6 +42,8 @@ def row_to_dict(row):
         "otp_code": "otpCode",
         "is_verified": "isVerified",
         "user_email": "userEmail",
+        "full_name": "fullName",
+        "phone_number": "phoneNumber",
     }
     for old, new in mapping.items():
         if old in d:
@@ -154,11 +156,10 @@ def verify():
 @app.route("/api/auth/session", methods=["GET"])
 def get_session():
     if "user" in session:
-        conn = get_connection()
-        user = conn.execute("SELECT email, phone_number FROM users WHERE email = ?", (session["user"],)).fetchone()
-        conn.close()
-        if user:
-            return jsonify({"loggedIn": True, "user": row_to_dict(user)})
+        with get_connection() as conn:
+            user = conn.execute("SELECT * FROM users WHERE email = ?", (session["user"],)).fetchone()
+            if user:
+                return jsonify({"loggedIn": True, "user": row_to_dict(user)})
     return jsonify({"loggedIn": False})
 
 
@@ -178,22 +179,39 @@ def update_profile():
     
     data = request.json
     email = session["user"]
-    new_name = data.get("name") # In our simplified schema we don't have name, but we can log it or add it
+    # Extract common fields
+    full_name = data.get("name") or data.get("fullName")
     phone = data.get("phoneNumber")
     password = data.get("password")
+    company = data.get("company")
+    industry = data.get("industry")
+    bio = data.get("bio")
+    plan = data.get("plan")
 
-    conn = get_connection()
-    if password:
-        hashed = generate_password_hash(password)
-        conn.execute("UPDATE users SET password = ?, phone_number = ? WHERE email = ?", (hashed, phone, email))
-    else:
-        conn.execute("UPDATE users SET phone_number = ? WHERE email = ?", (phone, email))
-    
-    conn.commit()
-    conn.close()
-    
-    log_activity(email, "update", "User updated profile details")
-    return jsonify({"message": "Profile updated"})
+    try:
+        with get_connection() as conn:
+            if password and password.strip():
+                hashed = generate_password_hash(password)
+                conn.execute("""UPDATE users SET password = ?, full_name = ?, phone_number = ?, 
+                                                 company = ?, industry = ?, bio = ?, plan = ? 
+                                WHERE email = ?""", 
+                             (hashed, full_name, phone, company, industry, bio, plan, email))
+            else:
+                conn.execute("""UPDATE users SET full_name = ?, phone_number = ?, 
+                                                 company = ?, industry = ?, bio = ?, plan = ? 
+                                WHERE email = ?""", 
+                             (full_name, phone, company, industry, bio, plan, email))
+            conn.commit()
+            
+            # Log action
+            conn.execute("INSERT INTO activity_logs (user_email, action, details) VALUES (?, 'update_profile', 'Updated profile fields')", (email,))
+            conn.commit()
+            
+            # Get updated user info
+            updated = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+            return jsonify({"message": "Profile updated", "user": row_to_dict(updated)}), 200
+    except Exception as e:
+        return jsonify({"message": f"Update failed: {str(e)}"}), 500
 
 
 # ══════════════════════════════════════════════════════════════════

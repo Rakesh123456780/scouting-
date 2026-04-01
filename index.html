@@ -331,22 +331,43 @@
     <section class="section" id="section-profile">
       <div class="profile-card">
         <div class="profile-header">
-          <div class="user-avatar-lg">JD</div>
+          <div class="user-avatar-lg" id="profileAvatar">UR</div>
           <div class="profile-titles">
-             <h2 id="profileName">Guest User</h2>
-             <p id="profileEmail">guest@scoutiq.com</p>
+            <h2 id="profileName">User Name</h2>
+            <div style="display:flex;align-items:center;gap:12px">
+              <p id="profileEmail">user@example.com</p>
+              <span class="badge-tag" id="profilePlan" style="background:var(--purple-light); color:#000; font-weight:800; font-size:.65rem; padding:2px 8px">FREE PLAN</span>
+            </div>
           </div>
         </div>
         
         <form id="profileForm" class="profile-form">
           <div class="form-row">
-            <div class="form-group">
-              <label>Full Name</label>
-              <input type="text" id="fullName" class="form-input" placeholder="Enter your name" />
+            <div class="form-row">
+              <div class="form-group"><label>Full Name</label><input type="text" id="fullName" class="form-input" placeholder="Enter your name" /></div>
+              <div class="form-group"><label>Phone Number</label><input type="tel" id="phoneNumber" class="form-input" placeholder="+1 (555) 000-0000" /></div>
             </div>
+            
+            <div class="form-row">
+              <div class="form-group"><label>Company Name</label><input type="text" id="companyName" class="form-input" placeholder="e.g. Acme Corp" /></div>
+              <div class="form-group">
+                <label>Industry</label>
+                <select id="industry" class="form-input">
+                  <option value="">Select Industry</option>
+                  <option value="e-commerce">E-commerce</option>
+                  <option value="retail">Retail</option>
+                  <option value="manufacturing">Manufacturing</option>
+                  <option value="logistics">Logistics</option>
+                  <option value="marketing">Marketing</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
             <div class="form-group">
-              <label>Phone Number</label>
-              <input type="tel" id="phoneNumber" class="form-input" placeholder="+1 (555) 000-0000" />
+              <label>Short Bio</label>
+              <textarea id="profileBio" class="form-input" rows="3" placeholder="Tell us about yourself..."></textarea>
+            </div>
             </div>
           </div>
           <div class="form-group">
