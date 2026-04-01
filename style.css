@@ -730,27 +730,40 @@ body::after {
 /* ===== PRODUCT GRID ===== */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
 }
 
 /* Horizontal Scroll for Dashboard */
 .product-scroll-horizontal {
-    display: flex !important;
-    overflow-x: auto;
-    gap: 18px;
-    padding: 10px 4px 20px 4px;
-    margin: 0 -4px;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
+  display: flex;
+  overflow-x: auto;
+  gap: 24px;
+  padding: 10px 0 30px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.product-scroll-horizontal::-webkit-scrollbar {
+  height: 6px;
+}
+
+.product-scroll-horizontal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.product-scroll-horizontal::-webkit-scrollbar-thumb {
+  background: var(--purple);
+  border-radius: 10px;
 }
 
 .product-scroll-horizontal .product-card {
-    min-width: 280px;
-    max-width: 320px;
+    min-width: 300px;
+    max-width: 300px;
     flex-shrink: 0;
+    scroll-snap-align: start;
 }
 
 .product-scroll-horizontal::-webkit-scrollbar {
