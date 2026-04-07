@@ -1,64 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ScoutIQ — Product Scouting System</title>
-  <meta name="description" content="ScoutIQ is a powerful product scouting and market intelligence platform for discovering, analyzing, and tracking winning products." />
+  <meta name="description"
+    content="ScoutIQ is a powerful product scouting and market intelligence platform for discovering, analyzing, and tracking winning products." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>" />
 </head>
+
 <body>
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="logo">
         <div class="logo-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </div>
         <span class="logo-text">ScoutIQ</span>
       </div>
       <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
       </button>
     </div>
 
     <nav class="sidebar-nav">
       <button class="nav-item active" data-section="dashboard" id="nav-dashboard">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+          <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+          <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+          <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+        </svg>
         <span>Dashboard</span>
       </button>
       <button class="nav-item" data-section="scout" id="nav-scout">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+          <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
         <span>Scout Products</span>
       </button>
       <button class="nav-item" data-section="watchlist" id="nav-watchlist">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+            stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+        </svg>
         <span>Watchlist</span>
         <span class="badge" id="watchlistBadge">0</span>
       </button>
       <button class="nav-item" data-section="compare" id="nav-compare">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
         <span>Compare</span>
       </button>
       <button class="nav-item" data-section="trends" id="nav-trends">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="16 7 22 7 22 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <polyline points="16 7 22 7 22 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
         <span>Market Trends</span>
       </button>
       <button class="nav-item" data-section="alerts" id="nav-alerts">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" />
+        </svg>
         <span>Alerts</span>
         <span class="badge badge-alert">3</span>
       </button>
       <button class="nav-item" data-section="profile" id="nav-profile">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
         <span>My Profile</span>
       </button>
 
     </nav>
-    
+
     <div class="sidebar-footer">
       <div class="user-avatar-wrap">
         <div class="user-avatar" id="userAvatar">JD</div>
@@ -67,7 +107,10 @@
           <span class="user-plan">Free Scout</span>
         </div>
         <button class="logout-btn" id="logoutBtn" title="Logout">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </button>
       </div>
     </div>
@@ -88,11 +131,18 @@
           <span>LIVE</span>
         </div>
         <div class="search-global">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
           <input type="text" id="globalSearch" placeholder="Search products, brands…" />
         </div>
         <button class="icon-btn notification-btn" id="notifBtn" title="Notifications">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" />
+          </svg>
           <span class="notif-dot"></span>
         </button>
       </div>
@@ -110,7 +160,11 @@
       <div class="kpi-grid">
         <div class="kpi-card kpi-purple">
           <div class="kpi-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" stroke="currentColor" stroke-width="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke="currentColor" stroke-width="2"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" stroke="currentColor"
+                stroke-width="2" />
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" stroke="currentColor" stroke-width="2" />
+            </svg>
           </div>
           <div class="kpi-body">
             <span class="kpi-value" id="kpiProducts">2,847</span>
@@ -120,7 +174,10 @@
         </div>
         <div class="kpi-card kpi-cyan">
           <div class="kpi-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            </svg>
           </div>
           <div class="kpi-body">
             <span class="kpi-value" id="kpiWatchlist">48</span>
@@ -130,17 +187,20 @@
         </div>
         <div class="kpi-card kpi-orange">
           <div class="kpi-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="16 7 22 7 22 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div class="kpi-body">
-            <span class="kpi-value" id="kpiMarket">$1.2M</span>
+            <span class="kpi-value" id="kpiMarket">₹1.2M</span>
             <span class="kpi-label">Market Opportunity</span>
           </div>
           <span class="kpi-change positive">+23.1%</span>
         </div>
         <div class="kpi-card kpi-green">
           <div class="kpi-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
           </div>
           <div class="kpi-body">
             <span class="kpi-value" id="kpiTrending">187</span>
@@ -189,8 +249,12 @@
     <section class="section" id="section-scout">
       <div class="scout-toolbar">
         <div class="search-bar-wrap">
-          <svg class="search-icon-inner" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-          <input type="text" id="scoutSearch" class="scout-search" placeholder="Search by product name, category, brand…" />
+          <svg class="search-icon-inner" width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <input type="text" id="scoutSearch" class="scout-search"
+            placeholder="Search by product name, category, brand…" />
         </div>
         <div class="filters-row">
           <select id="filterCategory" class="filter-select">
@@ -217,7 +281,10 @@
             <option value="70">70+ Score</option>
           </select>
           <button class="btn btn-primary" id="applyFilters">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
             Apply
           </button>
         </div>
@@ -229,10 +296,19 @@
         </div>
         <div class="view-toggle">
           <button class="view-btn active" id="gridViewBtn" title="Grid view">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+              <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+              <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+              <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
+            </svg>
           </button>
           <button class="view-btn" id="listViewBtn" title="List view">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
           </button>
         </div>
       </div>
@@ -263,7 +339,9 @@
           <p class="compare-pool-sub">Choose 2–3 products from your watchlist</p>
         </div>
         <button class="btn btn-outline" id="clearCompareBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
           Clear All
         </button>
       </div>
@@ -282,7 +360,10 @@
         <h3>Nothing to compare yet</h3>
         <p>Add products to your Watchlist first, then return here to compare them side-by-side.</p>
         <button class="btn btn-primary" data-section="scout">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
           Scout Products
         </button>
       </div>
@@ -320,7 +401,10 @@
       <div class="alerts-toolbar">
         <h3>Active Alerts</h3>
         <button class="btn btn-primary" id="addAlertBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
           New Alert
         </button>
       </div>
@@ -336,20 +420,25 @@
             <h2 id="profileName">User Name</h2>
             <div style="display:flex;align-items:center;gap:12px">
               <p id="profileEmail">user@example.com</p>
-              <span class="badge-tag" id="profilePlan" style="background:var(--purple-light); color:#000; font-weight:800; font-size:.65rem; padding:2px 8px">FREE PLAN</span>
+              <span class="badge-tag" id="profilePlan"
+                style="background:var(--purple-light); color:#000; font-weight:800; font-size:.65rem; padding:2px 8px">FREE
+                PLAN</span>
             </div>
           </div>
         </div>
-        
+
         <form id="profileForm" class="profile-form">
           <div class="form-row">
             <div class="form-row">
-              <div class="form-group"><label>Full Name</label><input type="text" id="fullName" class="form-input" placeholder="Enter your name" /></div>
-              <div class="form-group"><label>Phone Number</label><input type="tel" id="phoneNumber" class="form-input" placeholder="+1 (555) 000-0000" /></div>
+              <div class="form-group"><label>Full Name</label><input type="text" id="fullName" class="form-input"
+                  placeholder="Enter your name" /></div>
+              <div class="form-group"><label>Phone Number</label><input type="tel" id="phoneNumber" class="form-input"
+                  placeholder="+1 (555) 000-0000" /></div>
             </div>
-            
+
             <div class="form-row">
-              <div class="form-group"><label>Company Name</label><input type="text" id="companyName" class="form-input" placeholder="e.g. Acme Corp" /></div>
+              <div class="form-group"><label>Company Name</label><input type="text" id="companyName" class="form-input"
+                  placeholder="e.g. Acme Corp" /></div>
               <div class="form-group">
                 <label>Industry</label>
                 <select id="industry" class="form-input">
@@ -368,14 +457,14 @@
               <label>Short Bio</label>
               <textarea id="profileBio" class="form-input" rows="3" placeholder="Tell us about yourself..."></textarea>
             </div>
-            </div>
           </div>
-          <div class="form-group">
-            <label>New Password (leave blank to keep current)</label>
-            <input type="password" id="newPassword" class="form-input" placeholder="••••••••" />
-          </div>
-          <button type="submit" class="btn btn-primary">Update Profile</button>
-        </form>
+      </div>
+      <div class="form-group">
+        <label>New Password (leave blank to keep current)</label>
+        <input type="password" id="newPassword" class="form-input" placeholder="••••••••" />
+      </div>
+      <button type="submit" class="btn btn-primary">Update Profile</button>
+      </form>
       </div>
     </section>
 
@@ -386,11 +475,16 @@
   <div class="modal-overlay" id="authModal">
     <div class="modal modal-sm auth-modal">
       <button class="modal-close" id="authModalClose">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
       </button>
       <div class="auth-header">
         <div class="logo-icon sm">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
         </div>
         <h2>Unlock ScoutIQ</h2>
         <p id="authSubtitle">Join 2,000+ top scouters</p>
@@ -433,7 +527,9 @@
   <div class="modal-overlay" id="productModal">
     <div class="modal" id="productModalContent">
       <button class="modal-close" id="modalClose">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
       </button>
       <div class="modal-body" id="modalBody"></div>
     </div>
@@ -443,7 +539,9 @@
   <div class="modal-overlay" id="alertModal">
     <div class="modal modal-sm">
       <button class="modal-close" id="alertModalClose">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
       </button>
       <h2 class="modal-title">Create Price Alert</h2>
       <div class="form-group">
@@ -460,8 +558,8 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Threshold Value ($)</label>
-        <input type="number" id="alertThreshold" placeholder="e.g. 29.99" class="form-input" />
+        <label>Threshold Value (₹)</label>
+        <input type="number" id="alertThreshold" placeholder="e.g. 2500" class="form-input" />
       </div>
       <button class="btn btn-primary full-width" id="saveAlert">Save Alert</button>
     </div>
@@ -469,4 +567,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>

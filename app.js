@@ -41,10 +41,10 @@ async function api(path, options = {}) {
   }
 }
 
-const apiGet    = (path) => api(path);
-const apiPost   = (path, body) => api(path, { method: 'POST', body: JSON.stringify(body) });
-const apiPut    = (path, body) => api(path, { method: 'PUT', body: JSON.stringify(body) });
-const apiPatch  = (path, body) => api(path, { method: 'PATCH', body: JSON.stringify(body) });
+const apiGet = (path) => api(path);
+const apiPost = (path, body) => api(path, { method: 'POST', body: JSON.stringify(body) });
+const apiPut = (path, body) => api(path, { method: 'PUT', body: JSON.stringify(body) });
+const apiPatch = (path, body) => api(path, { method: 'PATCH', body: JSON.stringify(body) });
 const apiDelete = (path) => api(path, { method: 'DELETE' });
 
 // =========== INIT ===========
@@ -91,11 +91,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     initNavigation();
     initSidebar();
     if (sessionUser) initAuthModal();
-    
+
     // Call render and animate counters right away with what we have
-    renderDashboard(); 
+    renderDashboard();
     updateWatchlistBadge();
-    
+
     // FETCH products in background
     const products = await apiGet('/api/products');
     allProducts = products;
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     showToast('Data loaded successfully!', 'success', '✅');
   } catch (err) {
-    showToast('Failed to load data from server. Using offline mode.', 'warning', '⚠️');
+    showToast(`Initialization failed: ${err.message || err}`, 'warning', '⚠️');
     console.error('Init error:', err);
     // Still init UI elements even if API fails
     initNavigation();
@@ -192,36 +192,36 @@ function initSidebar() {
 // =========== DASHBOARD ===========
 async function renderDashboard() {
   renderDashboardProducts();
-  
+
   // Defer chart drawing slightly to ensure layout / offsetWidth is ready
   requestAnimationFrame(() => {
     setTimeout(initCharts, 50);
   });
-  
+
   animateKPIs();
 }
 
 function renderDashboardProducts() {
   const container = document.getElementById('dashboardProducts');
   if (!container) return;
-  
+
   const top = [...allProducts].sort((a, b) => b.score - a.score);
   const slice = top.slice(0, dashDisplayedCount);
-  
+
   container.classList.remove('product-grid');
   container.classList.add('product-scroll-horizontal');
   container.innerHTML = slice.map(p => productCardHTML(p)).join('');
   attachProductCardEvents(container);
-  
+
   // Add horizontal scroll listener for "infinite" load
   if (!container.dataset.hasListener) {
     container.addEventListener('scroll', () => {
       if (isDashLoadingMore) return;
-      
+
       const scrollLeft = container.scrollLeft;
       const scrollWidth = container.scrollWidth;
       const clientWidth = container.clientWidth;
-      
+
       // If within 400px of the right end
       if (scrollLeft + clientWidth >= scrollWidth - 400) {
         if (top.length > dashDisplayedCount) {
@@ -241,29 +241,29 @@ function renderDashboardProducts() {
 async function animateKPIs() {
   try {
     const dashData = await apiGet('/api/dashboard');
-    
+
     const animate = (id, target, isCurrency = false, isDec = false) => {
       const el = document.getElementById(id);
       if (!el) return;
       let count = 0;
-      if (target === 0) { el.textContent = isCurrency ? '$0' : '0'; return; }
+      if (target === 0) { el.textContent = isCurrency ? '₹0' : '0'; return; }
       const duration = 1500; // ms
       const startTime = performance.now();
-      
+
       const update = (now) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const easeOut = 1 - Math.pow(1 - progress, 3);
         const current = target * easeOut;
-        
+
         if (isCurrency) {
-          el.textContent = '$' + (current >= 1000000 ? (current / 1000000).toFixed(1) + 'M' : current.toLocaleString());
+          el.textContent = '₹' + (current >= 1000000 ? (current / 1000000).toFixed(1) + 'M' : current.toLocaleString());
         } else if (isDec) {
           el.textContent = current.toFixed(1);
         } else {
           el.textContent = Math.round(current).toLocaleString();
         }
-        
+
         if (progress < 1) requestAnimationFrame(update);
       };
       requestAnimationFrame(update);
@@ -273,7 +273,7 @@ async function animateKPIs() {
     animate('kpiWatchlist', dashData.watchlistCount || 0);
     animate('kpiMarket', (dashData.marketOpportunity || 0) * 1000000, true);
     animate('kpiTrending', dashData.trending || 0);
-    
+
   } catch (err) {
     console.error('KPI fetch error:', err);
   }
@@ -296,73 +296,73 @@ function drawActivityChart() {
     const data = res.data || [];
     if (data.length === 0) return;
 
-  const w = canvas.width, h = canvas.height;
-  const pad = { top: 20, right: 20, bottom: 30, left: 40 };
-  const chartW = w - pad.left - pad.right;
-  const chartH = h - pad.top - pad.bottom;
-  const maxVal = Math.max(...data) * 1.15;
+    const w = canvas.width, h = canvas.height;
+    const pad = { top: 20, right: 20, bottom: 30, left: 40 };
+    const chartW = w - pad.left - pad.right;
+    const chartH = h - pad.top - pad.bottom;
+    const maxVal = Math.max(...data) * 1.15;
 
-  ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h);
 
-  // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = pad.top + (chartH / 4) * i;
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
-    ctx.fillStyle = 'rgba(139,155,200,0.5)';
-    ctx.font = '10px Inter';
-    ctx.textAlign = 'right';
-    ctx.fillText(Math.round(maxVal - (maxVal / 4) * i), pad.left - 6, y + 4);
-  }
+    // Grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = pad.top + (chartH / 4) * i;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+      ctx.fillStyle = 'rgba(139,155,200,0.5)';
+      ctx.font = '10px Inter';
+      ctx.textAlign = 'right';
+      ctx.fillText(Math.round(maxVal - (maxVal / 4) * i), pad.left - 6, y + 4);
+    }
 
-  // Gradient fill
-  const grad = ctx.createLinearGradient(0, pad.top, 0, h - pad.bottom);
-  grad.addColorStop(0, 'rgba(139,92,246,0.4)');
-  grad.addColorStop(1, 'rgba(139,92,246,0)');
+    // Gradient fill
+    const grad = ctx.createLinearGradient(0, pad.top, 0, h - pad.bottom);
+    grad.addColorStop(0, 'rgba(139,92,246,0.4)');
+    grad.addColorStop(1, 'rgba(139,92,246,0)');
 
-  const pts = data.map((v, i) => ({
-    x: pad.left + (chartW / (data.length - 1)) * i,
-    y: pad.top + chartH * (1 - v / maxVal)
-  }));
+    const pts = data.map((v, i) => ({
+      x: pad.left + (chartW / (data.length - 1)) * i,
+      y: pad.top + chartH * (1 - v / maxVal)
+    }));
 
-  // Smooth curve
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length; i++) {
-    const cpX = (pts[i - 1].x + pts[i].x) / 2;
-    ctx.bezierCurveTo(cpX, pts[i - 1].y, cpX, pts[i].y, pts[i].x, pts[i].y);
-  }
-  ctx.lineTo(pts[pts.length - 1].x, h - pad.bottom);
-  ctx.lineTo(pts[0].x, h - pad.bottom);
-  ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
-
-  // Stroke
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  for (let i = 1; i < pts.length; i++) {
-    const cpX = (pts[i - 1].x + pts[i].x) / 2;
-    ctx.bezierCurveTo(cpX, pts[i - 1].y, cpX, pts[i].y, pts[i].x, pts[i].y);
-  }
-  ctx.strokeStyle = '#8b5cf6';
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-
-  // Points
-  pts.forEach((pt, i) => {
+    // Smooth curve
     ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#8b5cf6'; ctx.fill();
-    ctx.beginPath();
-    ctx.arc(pt.x, pt.y, 2, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const cpX = (pts[i - 1].x + pts[i].x) / 2;
+      ctx.bezierCurveTo(cpX, pts[i - 1].y, cpX, pts[i].y, pts[i].x, pts[i].y);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, h - pad.bottom);
+    ctx.lineTo(pts[0].x, h - pad.bottom);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
 
-    ctx.fillStyle = 'rgba(139,155,200,0.6)';
-    ctx.font = '10px Inter'; ctx.textAlign = 'center';
-    ctx.fillText(labels[i], pt.x, h - pad.bottom + 14);
-  });
+    // Stroke
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      const cpX = (pts[i - 1].x + pts[i].x) / 2;
+      ctx.bezierCurveTo(cpX, pts[i - 1].y, cpX, pts[i].y, pts[i].x, pts[i].y);
+    }
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Points
+    pts.forEach((pt, i) => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#8b5cf6'; ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff'; ctx.fill();
+
+      ctx.fillStyle = 'rgba(139,155,200,0.6)';
+      ctx.font = '10px Inter'; ctx.textAlign = 'center';
+      ctx.fillText(labels[i], pt.x, h - pad.bottom + 14);
+    });
   });
 }
 
@@ -437,58 +437,58 @@ function drawPriceChart() {
     const series = res.series || [];
     if (series.length === 0) return;
 
-  const w = canvas.width, h = canvas.height;
-  const pad = { top: 20, right: 20, bottom: 40, left: 50 };
-  const chartW = w - pad.left - pad.right;
-  const chartH = h - pad.top - pad.bottom;
+    const w = canvas.width, h = canvas.height;
+    const pad = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartW = w - pad.left - pad.right;
+    const chartH = h - pad.top - pad.bottom;
 
-  const allVals = series.flatMap(s => s.data || []);
-  if (allVals.length === 0) return;
-  const minVal = Math.min(...allVals) * 0.9, maxVal = Math.max(...allVals) * 1.1;
+    const allVals = series.flatMap(s => s.data || []);
+    if (allVals.length === 0) return;
+    const minVal = Math.min(...allVals) * 0.9, maxVal = Math.max(...allVals) * 1.1;
 
-  ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h);
 
-  // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
-  for (let i = 0; i <= 4; i++) {
-    const y = pad.top + (chartH / 4) * i;
-    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
-    ctx.fillStyle = 'rgba(139,155,200,0.5)'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
-    ctx.fillText('$' + Math.round(maxVal - (maxVal - minVal) / 4 * i), pad.left - 6, y + 4);
-  }
-
-  series.forEach(s => {
-    const pts = s.data.map((v, i) => ({
-      x: pad.left + (chartW / (s.data.length - 1)) * i,
-      y: pad.top + chartH * (1 - (v - minVal) / (maxVal - minVal))
-    }));
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) {
-      const cpX = (pts[i - 1].x + pts[i].x) / 2;
-      ctx.bezierCurveTo(cpX, pts[i - 1].y, cpX, pts[i].y, pts[i].x, pts[i].y);
+    // Grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = pad.top + (chartH / 4) * i;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+      ctx.fillStyle = 'rgba(139,155,200,0.5)'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+      ctx.fillText('₹' + Math.round(maxVal - (maxVal - minVal) / 4 * i), pad.left - 6, y + 4);
     }
-    ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.stroke();
-    pts.forEach(pt => {
-      ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
-      ctx.fillStyle = s.color; ctx.fill();
+
+    series.forEach(s => {
+      const pts = s.data.map((v, i) => ({
+        x: pad.left + (chartW / (s.data.length - 1)) * i,
+        y: pad.top + chartH * (1 - (v - minVal) / (maxVal - minVal))
+      }));
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) {
+        const cpX = (pts[i - 1].x + pts[i].x) / 2;
+        ctx.bezierCurveTo(cpX, pts[i - 1].y, cpX, pts[i].y, pts[i].x, pts[i].y);
+      }
+      ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.stroke();
+      pts.forEach(pt => {
+        ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = s.color; ctx.fill();
+      });
     });
-  });
 
-  // X labels
-  months.forEach((m, i) => {
-    const x = pad.left + (chartW / (months.length - 1)) * i;
-    ctx.fillStyle = 'rgba(139,155,200,0.5)'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
-    ctx.fillText(m, x, h - pad.bottom + 14);
-  });
+    // X labels
+    months.forEach((m, i) => {
+      const x = pad.left + (chartW / (months.length - 1)) * i;
+      ctx.fillStyle = 'rgba(139,155,200,0.5)'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+      ctx.fillText(m, x, h - pad.bottom + 14);
+    });
 
-  // Legend
-  series.forEach((s, i) => {
-    const x = pad.left + i * 100;
-    ctx.fillStyle = s.color; ctx.fillRect(x, h - 8, 12, 3);
-    ctx.fillStyle = 'rgba(139,155,200,0.7)'; ctx.font = '9px Inter'; ctx.textAlign = 'left';
-    ctx.fillText(s.label, x + 16, h - 4);
-  });
+    // Legend
+    series.forEach((s, i) => {
+      const x = pad.left + i * 100;
+      ctx.fillStyle = s.color; ctx.fillRect(x, h - 8, 12, 3);
+      ctx.fillStyle = 'rgba(139,155,200,0.7)'; ctx.font = '9px Inter'; ctx.textAlign = 'left';
+      ctx.fillText(s.label, x + 16, h - 4);
+    });
   });
 }
 
@@ -524,8 +524,8 @@ function productCardHTML(p, compact = false) {
         <div class="product-name">${p.name}</div>
         <div class="product-meta">
           <div class="product-price">
-            $${p.price.toFixed(2)}
-            ${origPrice ? `<span class="original">$${origPrice.toFixed(2)}</span>` : ''}
+            ₹${p.price.toFixed(2)}
+            ${origPrice ? `<span class="original">₹${origPrice.toFixed(2)}</span>` : ''}
           </div>
           <div class="rating">
             <span class="stars">${starsHTML}</span>
@@ -569,16 +569,16 @@ function renderProductGrid() {
   const slice = filteredProducts.slice(0, displayedCount);
   container.innerHTML = slice.map(p => productCardHTML(p)).join('');
   attachProductCardEvents(container);
-  
+
   if (document.getElementById('resultsCount')) {
     document.getElementById('resultsCount').innerHTML = `Showing <strong>${slice.length}</strong> of <strong>${filteredProducts.length}</strong> products`;
   }
-  
+
   // Toggle Show All button visibility
   const showAllBtn = document.getElementById('showAllBtn');
   const loadMoreBtn = document.getElementById('loadMoreBtn');
   const hasMore = filteredProducts.length > displayedCount;
-  
+
   if (showAllBtn) {
     showAllBtn.style.display = hasMore ? 'inline-block' : 'none';
   }
@@ -590,11 +590,11 @@ function renderProductGrid() {
 // --- Infinite Scroll Implementation ---
 window.addEventListener('scroll', () => {
   if (currentSection !== 'scout' || isLoadingMore) return;
-  
+
   const scrollHeight = document.documentElement.scrollHeight;
   const scrollTop = window.scrollY || document.documentElement.scrollTop;
   const clientHeight = window.innerHeight;
-  
+
   // Trigger when 300px from bottom for smoother experience
   if (scrollTop + clientHeight >= scrollHeight - 400) {
     if (filteredProducts.length > displayedCount) {
@@ -644,8 +644,8 @@ function applyFilters() {
 }
 
 document.getElementById('showAllBtn').addEventListener('click', () => {
-    displayedCount = filteredProducts.length;
-    renderProductGrid();
+  displayedCount = filteredProducts.length;
+  renderProductGrid();
 });
 
 // Grid / List view toggle
@@ -796,8 +796,8 @@ function buildVisualCompare() {
   header.innerHTML = `
     <div class="compare-attr-label-col"></div>
     ${selected.map((p, i) => {
-      const orig = p.originalPrice || p.original_price;
-      return `
+    const orig = p.originalPrice || p.original_price;
+    return `
       <div class="compare-product-col">
         <div class="compare-product-card" style="--col-accent:${ACCENT[i]}">
           ${p.score === bestScore ? '<div class="compare-crown" title="Top Score">👑</div>' : ''}
@@ -806,8 +806,8 @@ function buildVisualCompare() {
             <div class="compare-product-cat">${p.category} · ${p.brand || ''}</div>
             <div class="compare-product-name">${p.name}</div>
             <div class="compare-product-price">
-              $${p.price.toFixed(2)}
-              ${orig ? `<span class="compare-product-orig">$${orig.toFixed(2)}</span>` : ''}
+              ₹${p.price.toFixed(2)}
+              ${orig ? `<span class="compare-product-orig">₹${orig.toFixed(2)}</span>` : ''}
               ${discount(p) > 0 ? `<span class="compare-product-disc">-${discount(p)}%</span>` : ''}
             </div>
             <div class="compare-product-stars">${'★'.repeat(Math.floor(p.rating))}${p.rating % 1 >= 0.5 ? '½' : ''} <span>${p.rating}</span></div>
@@ -818,7 +818,7 @@ function buildVisualCompare() {
           <button class="compare-remove-btn" data-id="${p.id}" title="Remove">✕</button>
         </div>
       </div>`;
-    }).join('')}`;
+  }).join('')}`;
 
   header.querySelectorAll('.compare-remove-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -839,7 +839,7 @@ function buildVisualCompare() {
     {
       label: 'Price', icon: '💰',
       getValue: p => p.price,
-      format: p => `$${p.price.toFixed(2)}`,
+      format: p => `₹${p.price.toFixed(2)}`,
       getBar: p => ((Math.max(...selected.map(x => x.price)) - p.price) / Math.max(...selected.map(x => x.price))) * 100 + 20,
       isBest: p => p.price === minPrice,
     },
@@ -1081,7 +1081,7 @@ document.getElementById('saveAlert').addEventListener('click', async () => {
   const alertBody = {
     product,
     type,
-    description: threshold ? `Threshold: $${threshold}` : 'Trend monitoring active',
+    description: threshold ? `Threshold: ₹${threshold}` : 'Trend monitoring active',
   };
 
   try {
@@ -1134,8 +1134,8 @@ function openProductModal(id) {
             <div class="modal-product-category">${p.category} · ${p.brand || ''}</div>
             <div class="modal-product-name">${p.name}</div>
             <div class="modal-product-price">
-              $${p.price.toFixed(2)}
-              ${origPrice ? `<span class="price-orig">$${origPrice.toFixed(2)}</span>` : ''}
+              ₹${p.price.toFixed(2)}
+              ${origPrice ? `<span class="price-orig">₹${origPrice.toFixed(2)}</span>` : ''}
               ${discount > 0 ? `<span class="badge-tag badge-deal" style="margin-left:8px;font-size:.75rem">-${discount}%</span>` : ''}
             </div>
             <div style="margin-top:8px">
@@ -1180,7 +1180,7 @@ function openProductModal(id) {
                   <span class="plat-name">${plat.name}</span>
                 </div>
                 <div class="plat-price">
-                  $${plat.price.toFixed(2)}
+                  ₹${plat.price.toFixed(2)}
                   ${i === 0 ? '<span class="best-plat-tag">LOWEST</span>' : ''}
                 </div>
                 <a href="${plat.link}" class="plat-link" onclick="event.stopPropagation()">View</a>
@@ -1368,7 +1368,7 @@ function initTicker() {
       return `<div class="ticker-item">
         <span>${p.emoji}</span>
         <span class="ticker-name">${p.name.substring(0, 28)}</span>
-        <span class="ticker-price">$${p.price.toFixed(2)}</span>
+        <span class="ticker-price">₹${p.price.toFixed(2)}</span>
         <span class="ticker-${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(change)}%</span>
         <span style="color:var(--purple-light);font-size:.7rem">⚡${p.score}</span>
       </div>`;
@@ -1384,10 +1384,10 @@ function initTicker() {
     const items = track.querySelectorAll('.ticker-price');
     if (items.length === 0) return;
     const idx = Math.floor(Math.random() * Math.min(topProducts.length, items.length));
-    const oldVal = parseFloat(items[idx].textContent.replace('$', ''));
+    const oldVal = parseFloat(items[idx].textContent.replace('₹', ''));
     const delta = ((Math.random() * 2) - 1) * 0.5;
     const newVal = Math.max(0, oldVal + delta);
-    items[idx].textContent = '$' + newVal.toFixed(2);
+    items[idx].textContent = '₹' + newVal.toFixed(2);
     items[idx].style.transition = 'color 0.3s';
     items[idx].style.color = delta >= 0 ? 'var(--green-light)' : '#f87171';
     setTimeout(() => { items[idx].style.color = 'var(--cyan-light)'; }, 800);
@@ -1415,24 +1415,24 @@ function initAuthModal() {
         loginWrap.style.display = 'none';
         regWrap.style.display = 'block';
       }
-      otpWrap.style.display = 'none';
+      if (otpWrap) otpWrap.style.display = 'none';
     });
   });
 
   document.getElementById('btnLogin').onclick = () => handleAuth('login');
   document.getElementById('btnRegister').onclick = () => handleAuth('register');
   document.getElementById('logoutBtn').onclick = logout;
-  
+
   document.getElementById('authModalClose').onclick = () => {
     document.getElementById('authModal').classList.remove('open');
   };
-  
+
   document.getElementById('authModal').onclick = (e) => {
     if (e.target.id === 'authModal') {
       document.getElementById('authModal').classList.remove('open');
     }
   };
-  
+
   // Profile form
   document.getElementById('profileForm').onsubmit = async (e) => {
     e.preventDefault();
@@ -1460,10 +1460,10 @@ function openAuthModal() {
 }
 
 async function handleAuth(type) {
-  const email = type === 'login' ? document.getElementById('loginEmail').value : 
-               type === 'register' ? document.getElementById('regEmail').value : 
-               document.getElementById('sentEmail').textContent;
-  
+  const email = type === 'login' ? document.getElementById('loginEmail').value :
+    type === 'register' ? document.getElementById('regEmail').value :
+      document.getElementById('sentEmail').textContent;
+
   if (type === 'login' || type === 'register') {
     const password = document.getElementById(type === 'login' ? 'loginPassword' : 'regPassword').value;
     try {
@@ -1501,7 +1501,7 @@ async function logout() {
     updateUserUI();
     showToast('Logged out', 'info');
     navigateTo('dashboard');
-  } catch (err) {}
+  } catch (err) { }
 }
 
 function updateUserUI() {
@@ -1510,14 +1510,14 @@ function updateUserUI() {
   document.getElementById('userAvatar').textContent = isGuest ? 'GU' : sessionUser.email.substring(0, 2).toUpperCase();
   document.getElementById('profileName').textContent = isGuest ? 'Guest User' : sessionUser.email.split('@')[0];
   document.getElementById('profileEmail').textContent = isGuest ? 'Sign in to sync' : sessionUser.email;
-  
+
   if (sessionUser) {
     document.getElementById('fullName').value = sessionUser.fullName || sessionUser.email.split('@')[0];
     document.getElementById('phoneNumber').value = sessionUser.phoneNumber || '';
     document.getElementById('companyName').value = sessionUser.company || '';
     document.getElementById('industry').value = sessionUser.industry || '';
     document.getElementById('profileBio').value = sessionUser.bio || '';
-    
+
     const plan = sessionUser.plan || 'Free';
     document.getElementById('profilePlan').textContent = `${plan.toUpperCase()} PLAN`;
     document.getElementById('userPlan').textContent = `${plan} Plan`;
@@ -1526,7 +1526,7 @@ function updateUserUI() {
 
 
 document.getElementById('notifBtn').onclick = () => {
-    if (!sessionUser) openAuthModal();
-    else showToast('No new notifications', 'info', '🔔');
+  if (!sessionUser) openAuthModal();
+  else showToast('No new notifications', 'info', '🔔');
 };
 
